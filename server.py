@@ -45,7 +45,7 @@ else:
 
 
 
-def chat(message, history, model="gpt-3.5-turbo-16k",temperature = 0.5):
+def chat(message, history, model="gpt-3.5-turbo-16k",temperature = 0.6):
     history.append({"role":"user","content":message})
     response = openai.ChatCompletion.create(model=model,messages=history,temperature=temperature)
     history.append(response.choices[0].message)
@@ -83,6 +83,16 @@ def index():
                             f.write("我：" + item['content']+'\n')
                         else:
                             f.write("Jess：" + item['content']+'\n')
+            elif content.startswith('/dump'):#dump load the chat history
+                filename = content[5:]
+                if filename is None or not filename:
+                    filename = 'dump'
+                timestamp = int(time.time())
+                dt_object = datetime.fromtimestamp(timestamp)
+                formatted_date = dt_object.strftime("%Y-%m-%d %H:%M:%S")
+                with open(f'./profiles/jess/{filename}_{formatted_date}.txt', 'w', encoding='utf-8') as f:
+                    for item in history:
+                        f.write(item['content']+'\n')
             else:
                 response = chat(content, initContext+history)
                 history.append({'role':'user', 'content': content})
