@@ -3,11 +3,11 @@
         <div class="card-header msg_head">
             <div class="d-flex bd-highlight">
                 <div class="img_cont">
-                    <img src="{{ url_for('static', filename='jess.jpg') }}" class="rounded-circle user_img">
+                    <img src="{{ url_for('static', filename=current_profile.avatar) }}" class="rounded-circle user_img">
                     <span class="online_icon"></span>
                 </div>
                 <div class="user_info">
-                    <span>跟JESS🦖🥥 聊天</span>
+                    <span>跟 {{current_profile.displayName}} 聊天</span>
                     <p>{{history_len}} Messages</p>
                 </div>
             </div>
@@ -35,7 +35,7 @@
                 {% else %}
                     <div class="d-flex justify-content-start mb-4">
                         <div class="img_cont_msg">
-                            <img src="{{ url_for('static', filename='jess.jpg') }}" class="rounded-circle user_img_msg">
+                            <img src="{{ url_for('static', filename=current_profile.avatar) }}" class="rounded-circle user_img_msg">
                         </div>
                         <div class="msg_cotainer">
                             {{ item.content }}
@@ -56,3 +56,8 @@
         </div>
     </div>
 </div>
+{% if rank >= 98 %}
+<script>
+    showLove();
+</script>
+{% endif %}

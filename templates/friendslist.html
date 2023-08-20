@@ -2,18 +2,26 @@
     <div class="card mb-sm-3 mb-md-0 contacts_card">
         <div class="card-body contacts_body">
             <ui class="contacts">
+                {% for profile in profiles %}
+                {% if profile.name == current_profile.name %}
                 <li class="active">
+                {% else %}
+                <li>
+                {% endif %}
                     <div class="d-flex bd-highlight">
                         <div class="img_cont">
-                            <img src="{{ url_for('static', filename='jess.jpg') }}" class="rounded-circle user_img">
+                            <a href="/changeProfile?name={{profile.name}}">
+                            <img src="{{ url_for('static', filename=profile.avatar) }}" class="rounded-circle user_img">
                             <span class="online_icon"></span>
+                            </a>
                         </div>
                         <div class="user_info">
-                            <span>JESS🦖🥥</span>
-                            <p>JESS🦖🥥 is online</p>
+                            <span>{{profile["displayName"]}}</span>
+                            <p>{{profile["displayName"]}} is online</p>
                         </div>
                     </div>
                 </li>
+                {% endfor %}
             </ui>
         </div>
         <div class="card-footer"></div>

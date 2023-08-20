@@ -6,10 +6,10 @@ from flask_wtf import FlaskForm, CSRFProtect
 from wtforms.validators import DataRequired, Length, Regexp
 from wtforms.fields import *
 from flask_bootstrap import Bootstrap5, SwitchField
-from flask_sqlalchemy import SQLAlchemy
-import openai
 import time
+import json
 from datetime import datetime
+from bot.chat import LoveBot, OpenAIBot
 
 import os
 os.environ['http_proxy'] = 'http://127.0.0.1:7890'
@@ -24,37 +24,32 @@ bootstrap = Bootstrap5(app)
 
 csrf = CSRFProtect(app)
 
-with open('./profiles/jess/description.txt', 'r', encoding='utf-8') as f:
-    initMsg = f.read()
-with open('./profiles/jess/chat.txt', 'r', encoding='utf-8') as f:
-    feeds = f.read()
+profile_list = [
+    {"name":"jess", "displayName" : "JESS🦖🥥", "profile" :"./profiles/jess", "avatar":"jess.jpg"},
+    {"name":"stephen", "displayName" : "Stephen Li", "profile" :"./profiles/stephen","avatar":"stephen.jpg"}
+]
 
-feedsArray = feeds.splitlines()
-initContext=[{"role":"system","content":initMsg}]
-if len(feedsArray)%2 == 0:
-    role = "user"
+bot = LoveBot("./profiles/jess")
 
-    for feed in feedsArray:
-        initContext.append({"role":role,"content":feed})
-        if role == "user":
-          role = "assistant"
+def rebuild_history(history):
+    new_history = []
+    for item in history:
+        content_string = item['content']
+        try:
+            json_object = json.loads(content_string)
+            content_string = json_object['content']
+        except json.JSONDecodeError:
+            pass
+        if item['role'] == 'user':
+            new_history.append({"role":"user","content":content_string})
         else:
-          role = "user"
-else:
-    print("feedsArray is not even!")
-
-
-
-def chat(message, history, model="gpt-3.5-turbo-16k",temperature = 0.6):
-    history.append({"role":"user","content":message})
-    response = openai.ChatCompletion.create(model=model,messages=history,temperature=temperature)
-    history.append(response.choices[0].message)
-    return response.choices[0].message
-
+            new_history.append({"role":"assistant","content":content_string})
+    return new_history
 
 class ChatForm(FlaskForm):
     content = TextAreaField(label="", render_kw={"class":"form-control type_msg"})
     submit = SubmitField('发送')
+    
 
 
 @app.route('/', methods=['GET','POST'])
@@ -64,7 +59,14 @@ def index():
     else:
         history = []
         session['history'] = history
+    if 'current_profile' in session:
+        current_profile = session['current_profile']
+    else:
+        current_profile = profile_list[0]
+        session['current_profile'] = current_profile
+
     form = ChatForm()
+    rank = 0
     if form.validate_on_submit():
         if form.content.data=='':
             flash('输入内容不能为空')
@@ -91,15 +93,17 @@ def index():
                 dt_object = datetime.fromtimestamp(timestamp)
                 formatted_date = dt_object.strftime("%Y-%m-%d %H:%M:%S")
                 with open(f'./profiles/jess/{filename}_{formatted_date}.txt', 'w', encoding='utf-8') as f:
-                    for item in history:
+                    for item in rebuild_history(history):
                         f.write(item['content']+'\n')
             else:
-                response = chat(content, initContext+history)
-                history.append({'role':'user', 'content': content})
-                history.append({'role':'assistant', 'content': response.content})
+                response,history = bot.chat(content, history)
                 session['history'] = history
+                rank = response['content']['rank']
             form.content.data = ''
-    return render_template('index.html', form=form, history=history,history_len=len(history))
+    return render_template('index.html', form=form, \
+                           history=rebuild_history(history),\
+                            history_len=len(history), rank=rank, \
+                            profiles = profile_list, current_profile = current_profile)
 
 @app.route('/context', methods=['GET','POST'])
 def context():
@@ -109,6 +113,19 @@ def context():
 @app.route('/reset', methods=['GET'])
 def reset():
     session['history'] = []
+    return redirect("/")
+@app.route('/changeProfile', methods=['GET'])
+def change_profile():
+    name = request.args.get('name')
+    current_profile = session['current_profile']
+    if name == current_profile.name:
+        pass #do nothing
+    else:
+        for profile in profile_list:
+            if profile.name == name:
+                session['current_profile'] = profile
+                break
+        
     return redirect("/")
 
 if __name__ == '__main__':

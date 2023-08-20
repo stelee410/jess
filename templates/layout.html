@@ -44,9 +44,25 @@
         footer {
             margin: 20px;
         }
+        .emoji {
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            font-size: 10em;
+            z-index: 9999;
+            transition: all 0.5s ease-in-out;
+        }
+        .emoji.zoom-in {
+            transform: scale(1.5);
+        }
+        .emoji.zoom-out {
+            transform: scale(1);
+        }
+        
     </style>
 </head>
 <body>
+    </body>
     <nav class="navbar" style="padding-left: 50px;">
         <a href="/"><button class="btn"><i class="fa fa-home" style="font-size: xx-large;"></i></button></a>
     </nav>
