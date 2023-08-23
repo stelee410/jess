@@ -25,7 +25,6 @@ class OpenAIBot():
     def getResponse(self,message, history):
         history.append({"role":"user","content":message})
         messages = self.initContext+history
-        print(messages)
         response = openai.ChatCompletion.create(model=self.model,messages=messages,temperature=self.temperature)
         if "AI" in response.choices[0].message["content"]:
             print("Trying to remove AI")

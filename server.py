@@ -31,6 +31,7 @@ csrf = CSRFProtect(app)
 
 profile_list = [
     {"name":"jess", "displayName" : "JESS🦖🥥", "profile" :"./profiles/jess", "avatar":"jess.jpg", "bot":"LoveBot"},
+    {"name":"chenshuishui", "displayName" : "陈水水", "profile" :"./profiles/chen_shui_shui","avatar":"chen.png","bot":"OpenAIBot"},
     {"name":"stephen", "displayName" : "恋爱学长", "profile" :"./profiles/stephen","avatar":"boy.jpg","bot":"OpenAIBot"},
     {"name":"qing", "displayName" : "秦明超医生", "profile" :"./profiles/doc_who","avatar":"doc.jpg","bot":"OpenAIBot"},
     {"name":"wang", "displayName" : "王海涛投资部", "profile" :"./profiles/wang","avatar":"qing.jpg","bot":"OpenAIBot"}
