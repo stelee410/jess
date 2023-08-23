@@ -25,6 +25,7 @@ class OpenAIBot():
     def getResponse(self,message, history):
         history.append({"role":"user","content":message})
         messages = self.initContext+history
+        print(messages)
         response = openai.ChatCompletion.create(model=self.model,messages=messages,temperature=self.temperature)
         if "AI" in response.choices[0].message["content"]:
             print("Trying to remove AI")
@@ -57,6 +58,6 @@ class LoveBot(OpenAIBot):
             json_object = json.loads(content_string)
             content_string = json_object['content']
         except json.JSONDecodeError:
-            json_object = {'content':content_string,'rank':0}
+            json_object = {"content":content_string,"rank":0}
             pass
-        return {'role': message['role'], 'content':json_object}, history
+        return {"role": message['role'], "content":json_object}, history

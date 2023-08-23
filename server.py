@@ -9,20 +9,20 @@ from flask_bootstrap import Bootstrap5
 import time
 from datetime import datetime
 from bot.chat import LoveBot, OpenAIBot
-from utils.chat_history import get_profile_history, rebuild_history, save_profile_history, reset_all_history, reset_profile_history
-from flask_sqlalchemy import SQLAlchemy
+from utils.model_repos import ChatHistoryRepo,rebuild_history
+from sqlalchemy import create_engine
 
 import os
 
 os.environ['http_proxy'] = 'http://127.0.0.1:7890'
 os.environ['https_proxy'] = 'http://127.0.0.1:7890'
 
-db = SQLAlchemy()
+
 
 app = Flask(__name__)
 app.secret_key = 'dev'
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///jess.db"
-db.init_app(app)
+engine = create_engine("sqlite:///jess.db")
+repo = ChatHistoryRepo(engine, 'stelee')
 
 
 bootstrap = Bootstrap5(app)
@@ -55,7 +55,7 @@ def index():
         current_profile = profile_list[0]
         session['current_profile'] = current_profile
     bot = load_bot(current_profile)
-    history = get_profile_history()
+    history = repo.get_chat_history_by_name(current_profile['name'])
     form = ChatForm()
     rank = 0
     if form.validate_on_submit():
@@ -88,7 +88,8 @@ def index():
                         f.write(item['content']+'\n')
             else:
                 response,history = bot.chat(content, history)
-                save_profile_history(history)
+                for record in history[-2:]:
+                    repo.insert_message_to_chat_history(current_profile['name'], record)
                 if isinstance(response['content'], dict) and 'rank' in response['content']:
                     rank = response['content']['rank']
                 else:
@@ -102,12 +103,13 @@ def index():
 @app.route('/context', methods=['GET','POST'])
 def context():
     session.pop('current_profile', None)
-    reset_all_history()
+    repo.reset_all_history()
     return "hello"
 
 @app.route('/reset', methods=['GET'])
 def reset():
-    reset_profile_history()
+    current_profile = session['current_profile']
+    repo.reset_chat_history(current_profile['name'])
     return redirect("/")
 @app.route('/changeProfile', methods=['GET'])
 def change_profile():
