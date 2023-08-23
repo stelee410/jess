@@ -5,19 +5,24 @@ from markupsafe import Markup
 from flask_wtf import FlaskForm, CSRFProtect
 from wtforms.validators import DataRequired, Length, Regexp
 from wtforms.fields import *
-from flask_bootstrap import Bootstrap5, SwitchField
+from flask_bootstrap import Bootstrap5
 import time
-import json
 from datetime import datetime
 from bot.chat import LoveBot, OpenAIBot
+from utils.chat_history import get_profile_history, rebuild_history, save_profile_history, reset_all_history, reset_profile_history
+from flask_sqlalchemy import SQLAlchemy
 
 import os
+
 os.environ['http_proxy'] = 'http://127.0.0.1:7890'
 os.environ['https_proxy'] = 'http://127.0.0.1:7890'
 
+db = SQLAlchemy()
+
 app = Flask(__name__)
 app.secret_key = 'dev'
-
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///jess.db"
+db.init_app(app)
 
 
 bootstrap = Bootstrap5(app)
@@ -25,46 +30,32 @@ bootstrap = Bootstrap5(app)
 csrf = CSRFProtect(app)
 
 profile_list = [
-    {"name":"jess", "displayName" : "JESS🦖🥥", "profile" :"./profiles/jess", "avatar":"jess.jpg"},
-    {"name":"stephen", "displayName" : "Stephen Li", "profile" :"./profiles/stephen","avatar":"stephen.jpg"}
+    {"name":"jess", "displayName" : "JESS🦖🥥", "profile" :"./profiles/jess", "avatar":"jess.jpg", "bot":"LoveBot"},
+    {"name":"stephen", "displayName" : "恋爱学长", "profile" :"./profiles/stephen","avatar":"boy.jpg","bot":"OpenAIBot"},
+    {"name":"qing", "displayName" : "秦明超医生", "profile" :"./profiles/doc_who","avatar":"doc.jpg","bot":"OpenAIBot"},
+    {"name":"wang", "displayName" : "王海涛投资部", "profile" :"./profiles/wang","avatar":"qing.jpg","bot":"OpenAIBot"}
 ]
-
-bot = LoveBot("./profiles/jess")
-
-def rebuild_history(history):
-    new_history = []
-    for item in history:
-        content_string = item['content']
-        try:
-            json_object = json.loads(content_string)
-            content_string = json_object['content']
-        except json.JSONDecodeError:
-            pass
-        if item['role'] == 'user':
-            new_history.append({"role":"user","content":content_string})
-        else:
-            new_history.append({"role":"assistant","content":content_string})
-    return new_history
 
 class ChatForm(FlaskForm):
     content = TextAreaField(label="", render_kw={"class":"form-control type_msg"})
     submit = SubmitField('发送')
-    
+
+def load_bot(profile):
+    if profile['bot'] == 'LoveBot':
+        return LoveBot(profile['profile'])
+    else:
+        return OpenAIBot(profile['profile'])
 
 
 @app.route('/', methods=['GET','POST'])
 def index():
-    if 'history' in session:
-        history = session['history']
-    else:
-        history = []
-        session['history'] = history
     if 'current_profile' in session:
         current_profile = session['current_profile']
     else:
         current_profile = profile_list[0]
         session['current_profile'] = current_profile
-
+    bot = load_bot(current_profile)
+    history = get_profile_history()
     form = ChatForm()
     rank = 0
     if form.validate_on_submit():
@@ -79,12 +70,12 @@ def index():
                 timestamp = int(time.time())
                 dt_object = datetime.fromtimestamp(timestamp)
                 formatted_date = dt_object.strftime("%Y-%m-%d %H:%M:%S")
-                with open(f'./profiles/jess/{filename}_{formatted_date}.txt', 'w', encoding='utf-8') as f:
+                with open(f'{current_profile["profile"]}/{filename}_{formatted_date}.txt', 'w', encoding='utf-8') as f:
                     for item in history:
                         if item['role'] == 'user':
                             f.write("我：" + item['content']+'\n')
                         else:
-                            f.write("Jess：" + item['content']+'\n')
+                            f.write(current_profile.displayName + "：" + item['content']+'\n')
             elif content.startswith('/dump'):#dump load the chat history
                 filename = content[5:]
                 if filename is None or not filename:
@@ -92,13 +83,16 @@ def index():
                 timestamp = int(time.time())
                 dt_object = datetime.fromtimestamp(timestamp)
                 formatted_date = dt_object.strftime("%Y-%m-%d %H:%M:%S")
-                with open(f'./profiles/jess/{filename}_{formatted_date}.txt', 'w', encoding='utf-8') as f:
+                with open(f'{current_profile["profile"]}/{filename}_{formatted_date}.txt', 'w', encoding='utf-8') as f:
                     for item in rebuild_history(history):
                         f.write(item['content']+'\n')
             else:
                 response,history = bot.chat(content, history)
-                session['history'] = history
-                rank = response['content']['rank']
+                save_profile_history(history)
+                if isinstance(response['content'], dict) and 'rank' in response['content']:
+                    rank = response['content']['rank']
+                else:
+                    rank = 0
             form.content.data = ''
     return render_template('index.html', form=form, \
                            history=rebuild_history(history),\
@@ -107,26 +101,27 @@ def index():
 
 @app.route('/context', methods=['GET','POST'])
 def context():
-    session['history'] = []
+    session.pop('current_profile', None)
+    reset_all_history()
     return "hello"
 
 @app.route('/reset', methods=['GET'])
 def reset():
-    session['history'] = []
+    reset_profile_history()
     return redirect("/")
 @app.route('/changeProfile', methods=['GET'])
 def change_profile():
     name = request.args.get('name')
     current_profile = session['current_profile']
-    if name == current_profile.name:
+    if name == current_profile['name']:
         pass #do nothing
     else:
         for profile in profile_list:
-            if profile.name == name:
+            if profile['name'] == name:
                 session['current_profile'] = profile
                 break
         
     return redirect("/")
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=8080)
