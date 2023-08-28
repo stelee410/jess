@@ -1,8 +1,8 @@
 import json
 import datetime
-from models import ChatHistory
+from models import ChatHistory, Profile
 from sqlalchemy.orm import Session
-from sqlalchemy import select,delete
+from sqlalchemy import select,delete,update
 
 
 def rebuild_history(history):
@@ -55,3 +55,26 @@ class ChatHistoryRepo():
         stmt = delete(ChatHistory).where(ChatHistory.username == self.username)
         session.execute(stmt)
         session.commit()
+
+class ProfileRepo():
+    def __init__(self,engine) -> None:
+        self.engine = engine
+    def get_profile_by_name(self,name):
+        session = Session(self.engine)
+        stmt = select(Profile).where(Profile.name==name)
+        return session.execute(stmt).scalars().first()
+    def get_profile_list(self):
+        session = Session(self.engine)
+        stmt = select(Profile)
+        return session.execute(stmt).scalars().all()
+    
+    def add_or_update_profile(self, data):
+        session = Session(self.engine)
+        existing_profile = self.get_profile_by_name(data['name'])
+        if existing_profile is not None:
+            stmt = update(Profile).where(Profile.name == existing_profile.name).values(displayName=data['displayName'], avatar=data['avatar'], bot=data['bot'], description=data['description'], message=data['message'])
+            session.execute(stmt)
+        else:
+            profile = Profile(name=data['name'], displayName=data['displayName'], avatar=data['avatar'], bot=data['bot'], description=data['description'], message=data['message'])
+            session.add(profile)
+            session.commit()

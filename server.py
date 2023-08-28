@@ -9,7 +9,7 @@ from flask_bootstrap import Bootstrap5
 import time
 from datetime import datetime
 from bot.chat import LoveBot, OpenAIBot
-from utils.model_repos import ChatHistoryRepo,rebuild_history
+from utils.model_repos import ChatHistoryRepo,rebuild_history,ProfileRepo
 from sqlalchemy import create_engine
 
 import os
@@ -23,40 +23,46 @@ app = Flask(__name__)
 app.secret_key = 'dev'
 engine = create_engine("sqlite:///jess.db")
 repo = ChatHistoryRepo(engine, 'stelee')
+profile_repo = ProfileRepo(engine)
 
 
 bootstrap = Bootstrap5(app)
 
 csrf = CSRFProtect(app)
 
-profile_list = [
-    {"name":"jess", "displayName" : "JESS🦖🥥", "profile" :"./profiles/jess", "avatar":"jess.jpg", "bot":"LoveBot"},
-    {"name":"chenshuishui", "displayName" : "陈水水", "profile" :"./profiles/chen_shui_shui","avatar":"chen.png","bot":"OpenAIBot"},
-    {"name":"stephen", "displayName" : "恋爱学长", "profile" :"./profiles/stephen","avatar":"boy.jpg","bot":"OpenAIBot"},
-    {"name":"qing", "displayName" : "秦明超医生", "profile" :"./profiles/doc_who","avatar":"doc.jpg","bot":"OpenAIBot"},
-    {"name":"wang", "displayName" : "王海涛投资部", "profile" :"./profiles/wang","avatar":"qing.jpg","bot":"OpenAIBot"}
-]
+
 
 class ChatForm(FlaskForm):
     content = TextAreaField(label="", render_kw={"class":"form-control type_msg"})
     submit = SubmitField('发送')
 
+class ProfileForm(FlaskForm):
+    name = StringField(label="姓名", validators=[DataRequired(), Length(1, 20)])
+    displayName = StringField(label="昵称", validators=[DataRequired(), Length(1, 20)])
+    avatar = StringField(label="头像", validators=[DataRequired(), Length(1, 20)])
+    bot = StringField(label="机器人", validators=[DataRequired(), Length(1, 20)],default='OpenAIBot')
+    description = TextAreaField(label="描述", validators=[DataRequired(), Length(1, 2048)], render_kw={"rows":"25"})
+    message = TextAreaField(label="消息", validators=[DataRequired()], render_kw={"rows":"30"})
+    submit = SubmitField('提交')
+
 def load_bot(profile):
-    if profile['bot'] == 'LoveBot':
-        return LoveBot(profile['profile'])
+    if profile.bot == 'LoveBot':
+        return LoveBot(profile.description,profile.message)
     else:
-        return OpenAIBot(profile['profile'])
+        return OpenAIBot(profile.description,profile.message)
 
 
 @app.route('/', methods=['GET','POST'])
 def index():
-    if 'current_profile' in session:
-        current_profile = session['current_profile']
+    profile_list = profile_repo.get_profile_list()
+    if 'current_profile_name' in session:
+        current_profile_name = session['current_profile_name']
+        current_profile = profile_repo.get_profile_by_name(current_profile_name)
     else:
         current_profile = profile_list[0]
-        session['current_profile'] = current_profile
+        session['current_profile_name'] = current_profile.name
     bot = load_bot(current_profile)
-    history = repo.get_chat_history_by_name(current_profile['name'])
+    history = repo.get_chat_history_by_name(current_profile.name)
     form = ChatForm()
     rank = 0
     if form.validate_on_submit():
@@ -65,18 +71,7 @@ def index():
         else:
             content = form.content.data
             if content.startswith('/save'):#command save the chat history
-                filename = content[5:]
-                if filename is None or not filename:
-                    filename = 'chat_history'
-                timestamp = int(time.time())
-                dt_object = datetime.fromtimestamp(timestamp)
-                formatted_date = dt_object.strftime("%Y-%m-%d %H:%M:%S")
-                with open(f'{current_profile["profile"]}/{filename}_{formatted_date}.txt', 'w', encoding='utf-8') as f:
-                    for item in history:
-                        if item['role'] == 'user':
-                            f.write("我：" + item['content']+'\n')
-                        else:
-                            f.write(current_profile.displayName + "：" + item['content']+'\n')
+                pass#todo: save the chat history
             elif content.startswith('/dump'):#dump load the chat history
                 filename = content[5:]
                 if filename is None or not filename:
@@ -84,13 +79,13 @@ def index():
                 timestamp = int(time.time())
                 dt_object = datetime.fromtimestamp(timestamp)
                 formatted_date = dt_object.strftime("%Y-%m-%d %H:%M:%S")
-                with open(f'{current_profile["profile"]}/{filename}_{formatted_date}.txt', 'w', encoding='utf-8') as f:
+                with open(f'./profiles/{current_profile.name}/{filename}_{formatted_date}.txt', 'w', encoding='utf-8') as f:
                     for item in rebuild_history(history):
                         f.write(item['content']+'\n')
             else:
                 response,history = bot.chat(content, history)
                 for record in history[-2:]:
-                    repo.insert_message_to_chat_history(current_profile['name'], record)
+                    repo.insert_message_to_chat_history(current_profile.name, record)
                 if isinstance(response['content'], dict) and 'rank' in response['content']:
                     rank = response['content']['rank']
                 else:
@@ -109,22 +104,33 @@ def context():
 
 @app.route('/reset', methods=['GET'])
 def reset():
-    current_profile = session['current_profile']
-    repo.reset_chat_history(current_profile['name'])
+    current_profile_name = session['current_profile_name']
+    repo.reset_chat_history(current_profile_name)
     return redirect("/")
+
 @app.route('/changeProfile', methods=['GET'])
 def change_profile():
     name = request.args.get('name')
-    current_profile = session['current_profile']
-    if name == current_profile['name']:
-        pass #do nothing
-    else:
-        for profile in profile_list:
-            if profile['name'] == name:
-                session['current_profile'] = profile
-                break
-        
+    session['current_profile_name'] = name
     return redirect("/")
+
+@app.route('/profile/<name>', methods=['GET','POST'])
+def profile(name):
+    form = ProfileForm()
+    
+    form.name.data = name
+    
+    if form.validate_on_submit():
+        profile_repo.add_or_update_profile(form.data)
+    else:
+        profile = profile_repo.get_profile_by_name(name)
+        if profile is not None:
+            form.displayName.data = profile.displayName
+            form.avatar.data = profile.avatar
+            form.bot.data = profile.bot
+            form.description.data = profile.description
+            form.message.data = profile.message
+    return render_template("profile.html", name=name, form=form)
 
 if __name__ == '__main__':
     app.run(debug=True, port=8080)

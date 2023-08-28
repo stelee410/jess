@@ -2,11 +2,7 @@
 import openai
 import json
 class OpenAIBot():
-    def __init__(self,profile_path) -> None:
-        with open(f'{profile_path}/description.txt', 'r', encoding='utf-8') as f:
-            initMsg = f.read()
-        with open(f'{profile_path}/chat.txt', 'r', encoding='utf-8') as f:
-            feeds = f.read()
+    def __init__(self,initMsg,feeds) -> None:
         self.initContext=[{"role":"system","content":initMsg}]
         feedsArray = feeds.splitlines()
         if len(feedsArray)%2 == 0:
@@ -44,8 +40,8 @@ class OpenAIBot():
     
 
 class LoveBot(OpenAIBot):
-    def __init__(self,profile_path) -> None:
-        super().__init__(profile_path)
+    def __init__(self,initMsg,feeds) -> None:
+        super().__init__(initMsg,feeds)
         self.initContext.append({"role":"system","content":"回复输出成JSON格式，包括两个字段，一个是content，也就是回复的内容；一个是rank在，也就是情绪值整数，这个整数是你对对方的好感度，范围是-100到100，0是中立，100是最喜欢，-100是最讨厌。"})
         self.temperature = 0.8
 
