@@ -23,3 +23,14 @@ function addEmoji(emoji) {
 function showLove(){
     addEmoji('&#x2764;')
 }
+function submitMsg(){
+    if($("#msgForm textarea").val().trim()!==""){
+        $("#msgForm").submit();
+        $('#msgForm').html('<p class=text-black>等待对方响应...</p>');
+    }
+}
+$(document).ready(function(){
+    $('#action_menu_btn').click(function(){
+        $('.action_menu').toggle();
+    });
+});

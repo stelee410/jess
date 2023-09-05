@@ -23,3 +23,10 @@ class Profile(Base):
     bot = sa.Column(sa.String(100), nullable=False)
     description = sa.Column(sa.Text, nullable=False)
     message = sa.Column(sa.Text, nullable=False)
+
+class User(Base):
+    __tablename__ = 'user'
+    id = sa.Column(sa.Integer, primary_key=True)
+    username = sa.Column(sa.String(100), nullable=False)
+    displayName = sa.Column(sa.String(100), nullable=False)
+    password = sa.Column(sa.String(100), nullable=False)

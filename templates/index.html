@@ -1,13 +1,23 @@
 {% extends 'layout.html' %}
 {% from 'bootstrap5/form.html' import render_form, render_field, render_form_row %}
 {% block content %}
-<div class="container">
-    <div class="container-fluid h-100">
-        <div class="row justify-content-center h-100">
-            {% include 'friendslist.html' %}
-            {% include 'chat.html' %}
-        </div>
+    {% for profile in profiles %}
+    <div class="box">
+        <a href='/chat/{{profile["name"]}}'>
+            <img src="{{ url_for('static', filename=profile.avatar) }}" class="rounded-circle user_img">
+            <div class="text">
+                <br> {{profile["displayName"]}}
+             </div>
+             <div class="text2">
+                {{profile["displayName"]}} in online
+             </div>
+        </a>
+    </div>   
+    {% endfor %}
+    <div class="box">
+        <a href="/profile/:create">
+            <img class="inner-image" src="{{ url_for('static', filename='images/icon@2x.png') }}"  alt="Box 1 Image">
+            
+        </a>
     </div>
-    
-</div>
 {% endblock %}

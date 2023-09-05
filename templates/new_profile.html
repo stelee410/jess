@@ -3,20 +3,17 @@
 {% block content %}
 <div id="chatbox">
     <div id="banner">
-        <a href="/chat/{{name}}">
+        <a href="/">
             <img class="icon" src="{{ url_for('static', filename='images/return@2x.png') }}" alt="return-button"  ></button>
         </a>
-        <div>Profile for {{profile.displayName}}</div>
+        <div>创建新的数字人</div>
     </div>
 
     <div id="chat-container" class="text-black">
         {{render_form(form)}}
     </div>
     <div class="chat-input-container">
-        <input type="submit" value="更新" class="btn btn-primary" onclick="$('form').submit()"/>&nbsp;&nbsp;&
-        <input type="button" value="转交所属权" class="btn btn-secondary" />&nbsp;&nbsp;&
-        <input type="button" value="设置下线" class="btn btn-warning"/>&nbsp;&nbsp;&
-        <input type="button" value="删除" class="btn btn-danger"/>&nbsp;&nbsp;&
+        <input type="submit" value="更新" class="btn btn-primary" onclick="$('form').submit()"/>
     </div>
 </div>
 {% endblock %}

@@ -1,6 +1,6 @@
 import json
 import datetime
-from models import ChatHistory, Profile
+from models import ChatHistory, Profile,User
 from sqlalchemy.orm import Session
 from sqlalchemy import select,delete,update
 
@@ -56,6 +56,14 @@ class ChatHistoryRepo():
         session.execute(stmt)
         session.commit()
 
+class UserRepo():
+    def __init__(self,engine) -> None:
+        self.engine = engine
+    def get_user_by_username_password(self,username,password):
+        session = Session(self.engine)
+        stmt = select(User).where(User.username==username).where(User.password==password)
+        return session.execute(stmt).scalars().first()
+
 class ProfileRepo():
     def __init__(self,engine) -> None:
         self.engine = engine
@@ -74,6 +82,7 @@ class ProfileRepo():
         if existing_profile is not None:
             stmt = update(Profile).where(Profile.name == existing_profile.name).values(displayName=data['displayName'], avatar=data['avatar'], bot=data['bot'], description=data['description'], message=data['message'])
             session.execute(stmt)
+            session.commit()
         else:
             profile = Profile(name=data['name'], displayName=data['displayName'], avatar=data['avatar'], bot=data['bot'], description=data['description'], message=data['message'])
             session.add(profile)

@@ -16,6 +16,7 @@ class OpenAIBot():
         else:
             print("feedsArray is not even! initialize failed.")
         self.model = "gpt-3.5-turbo-16k"
+        #self.model = "gpt-4"
         self.temperature = 0.8
     
     def getResponse(self,message, history):
