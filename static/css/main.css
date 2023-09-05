@@ -374,3 +374,31 @@ footer {
     width: 100%;
 }
 
+#user-container {
+    position: fixed;
+    top: 0;
+    right: 0;
+    padding: 10px;
+    background-color: rgb(166, 0, 255);
+    color: #fff;
+    font-size: 16px;
+    font-family: Arial, sans-serif;
+}
+
+.dot {
+    position: absolute;
+    bottom: 82px;
+    right: 34px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.dot.online {
+    background-color: green;
+}
+
+.dot.offline {
+    background-color: red;
+}
+

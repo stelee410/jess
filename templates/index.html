@@ -4,12 +4,23 @@
     {% for profile in profiles %}
     <div class="box">
         <a href='/chat/{{profile["name"]}}'>
-            <img src="{{ url_for('static', filename=profile.avatar) }}" class="rounded-circle user_img">
+            <div class="avatar-container">
+                {% if profile.offline == 0 %}
+                <div class="dot online"></div>
+                {% else %}
+                <div class="dot offline"></div>
+                {% endif %}
+                <img src="{{ url_for('static', filename=profile.avatar) }}" class="rounded-circle user_img"/>
+            </div>
             <div class="text">
                 <br> {{profile["displayName"]}}
              </div>
              <div class="text2">
+                {% if profile.offline == 0 %}
                 {{profile["displayName"]}} in online
+                {% else %}
+                {{profile["displayName"]}} is offline
+                {% endif %}
              </div>
         </a>
     </div>   

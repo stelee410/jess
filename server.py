@@ -14,6 +14,7 @@ from utils.password_hash import get_password_hash
 from sqlalchemy import create_engine
 from flask_wtf.file import FileRequired, FileAllowed, FileField
 from werkzeug.utils import secure_filename
+from functools import wraps
 
 import os
 
@@ -25,7 +26,6 @@ os.environ['https_proxy'] = 'http://127.0.0.1:7890'
 app = Flask(__name__)
 app.secret_key = 'mysecretsalt'
 engine = create_engine("sqlite:///jess.db")
-repo = ChatHistoryRepo(engine, 'stelee')
 profile_repo = ProfileRepo(engine)
 
 
@@ -34,10 +34,26 @@ bootstrap = Bootstrap5(app)
 csrf = CSRFProtect(app)
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif'}
 
+def simple_login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get('username') is None:
+            return redirect("/login")
+        return f(*args, **kwargs)
+    return decorated_function
+
 
 
 class ChatForm(FlaskForm):
     content = TextAreaField(label="", render_kw={"class":"form-control type_msg"})
+    submit = SubmitField('发送')
+
+class TransferForm(FlaskForm):
+    username = StringField(label="对方用户名", validators=[DataRequired(), Length(1, 10)])
+    submit = SubmitField('发送')
+
+class DeleteForm(FlaskForm):
+    username = StringField(label='请输入“我确认删除这个数字人”', validators=[DataRequired(), Length(1, 10)])
     submit = SubmitField('发送')
 
 class LoginForm(FlaskForm):
@@ -68,71 +84,27 @@ def load_bot(profile):
         return OpenAIBot(profile.description,profile.message)
 
 
-@app.route('/', methods=['GET','POST'])
+@app.route('/', methods=['GET'])
+@simple_login_required
 def index():
     profile_list = profile_repo.get_profile_list()
-    if 'current_profile_name' in session:
-        current_profile_name = session['current_profile_name']
-        current_profile = profile_repo.get_profile_by_name(current_profile_name)
-    else:
-        current_profile = profile_list[0]
-        session['current_profile_name'] = current_profile.name
-    bot = load_bot(current_profile)
-    history = repo.get_chat_history_by_name(current_profile.name)
-    form = ChatForm()
-    rank = 0
-    if form.validate_on_submit():
-        if form.content.data=='':
-            flash('输入内容不能为空')
-        else:
-            content = form.content.data
-            if content.startswith('/save'):#command save the chat history
-                pass#todo: save the chat history
-            elif content.startswith('/dump'):#dump load the chat history
-                filename = content[5:]
-                if filename is None or not filename:
-                    filename = 'dump'
-                timestamp = int(time.time())
-                dt_object = datetime.fromtimestamp(timestamp)
-                formatted_date = dt_object.strftime("%Y-%m-%d %H:%M:%S")
-                with open(f'./profiles/{current_profile.name}/{filename}_{formatted_date}.txt', 'w', encoding='utf-8') as f:
-                    for item in rebuild_history(history):
-                        f.write(item['content']+'\n')
-            else:
-                response,history = bot.chat(content, history)
-                for record in history[-2:]:
-                    repo.insert_message_to_chat_history(current_profile.name, record)
-                if isinstance(response['content'], dict) and 'rank' in response['content']:
-                    rank = response['content']['rank']
-                else:
-                    rank = 0
-            form.content.data = ''
-    return render_template('index.html', form=form, \
-                           history=rebuild_history(history),\
-                            history_len=len(history), rank=rank, \
-                            profiles = profile_list, current_profile = current_profile)
+    return render_template('index.html', profiles = profile_list,userDisplayName = session.get('displayName'))
 
-@app.route('/context', methods=['GET','POST'])
-def context():
-    session.pop('current_profile', None)
-    repo.reset_all_history()
-    return "hello"
 
 @app.route('/reset/<name>', methods=['GET'])
+@simple_login_required
 def reset(name):
+    repo = ChatHistoryRepo(engine,session.get('username'))
     repo.reset_chat_history(name)
     return redirect(f"/chat/{name}")
 
-@app.route('/changeProfile', methods=['GET'])
-def change_profile():
-    name = request.args.get('name')
-    session['current_profile_name'] = name
-    return redirect("/")
-
 @app.route('/chat/<name>', methods=['GET','POST'])
+@simple_login_required
 def chat(name):
+    username = session.get('username')
     profile = profile_repo.get_profile_by_name(name)
     bot = load_bot(profile)
+    repo = ChatHistoryRepo(engine,username)
     history = repo.get_chat_history_by_name(name)
     rank = 0 #TODO: this is going to update to meta data or prompt agent.
     form = ChatForm()
@@ -152,6 +124,7 @@ def chat(name):
                             profile = profile)
 
 @app.route('/profile/<name>', methods=['GET','POST'])
+@simple_login_required
 def profile(name):
     form = ProfileUpdateForm()
     profile = profile_repo.get_profile_by_name(name)
@@ -168,7 +141,7 @@ def profile(name):
         else:
             data['avatar'] = profile.avatar
         data['name'] = name
-        profile_repo.add_or_update_profile(data)
+        profile_repo.add_or_update_profile(data,session.get('username'))
     else:
         form.displayName.data = profile.displayName
         form.bot.data = profile.bot
@@ -177,6 +150,7 @@ def profile(name):
     return render_template("profile.html", name=name, form=form, profile=profile)
 
 @app.route('/profile/:create', methods=['GET','POST'])
+@simple_login_required
 def new_profile():
     form = ProfileForm()
     if form.validate_on_submit():
@@ -191,7 +165,7 @@ def new_profile():
             if '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS:
                 file.save(os.path.join('./static/profiles', filename))
                 data['avatar'] = f"profiles/{filename}"
-        profile_repo.add_or_update_profile(data)
+        profile_repo.add_or_update_profile(data,session.get('username'))
         return redirect("/")
     return render_template("new_profile.html", form=form)
 
@@ -209,13 +183,59 @@ def login():
             return render_template("login.html", form=form)
         else:
             session['username'] = username
+            session['displayName'] = user.displayName
             return redirect("/")
     return render_template("login.html", form=form)
 
 @app.route('/logout', methods=['GET'])
+@simple_login_required
 def logout():
     session['username'] = None
+    session['displayName'] = None
     return redirect("/login")
+
+@app.route('/profile/<name>/offline', methods=['GET'])
+@simple_login_required
+def offline(name):
+    profile_repo.set_profile_offline(name)
+    return redirect(f"/profile/{name}")
+
+@app.route('/profile/<name>/online', methods=['GET'])
+@simple_login_required
+def online(name):
+    profile_repo.set_profile_online(name)
+    return redirect(f"/profile/{name}")
+
+@app.route('/profile/<name>/transfer', methods=['GET','POST'])
+@simple_login_required
+def transfer(name):
+    form = TransferForm()
+    profile = profile_repo.get_profile_by_name(name)
+    if profile is None:
+        return render_template("404.html", message=f"Profile {name} not found")
+    if profile.owned_by != session.get('username'):
+        return render_template("500.html", message=f"Profile {name} not owned by {session.get('username')}")
+    if form.validate_on_submit():
+        profile_repo.transfer_profile(name,session.get('username'),form.username.data)
+        return redirect("/")
+    return render_template("transfer.html", form=form)
+
+@app.route('/profile/<name>/delete', methods=['GET','POST'])
+@simple_login_required
+def delete(name):
+    form = DeleteForm()
+    profile = profile_repo.get_profile_by_name(name)
+    if profile is None:
+        return render_template("404.html", message=f"Profile {name} not found")
+    if profile.owned_by != session.get('username'):
+        return render_template("500.html", message=f"Profile {name} not owned by {session.get('username')}")
+    if form.validate_on_submit():
+        if form.username.data == "我确认删除这个数字人":
+            profile_repo.delete_profile(name)
+            return redirect("/")
+        else:
+            flash('输入错误')
+    return render_template("delete.html", form=form)
 
 if __name__ == '__main__':
     app.run(debug=True, port=8080)

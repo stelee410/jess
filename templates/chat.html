@@ -10,7 +10,9 @@
         <span id="action_menu_btn"><i class="fas fa-ellipsis-v"></i></span>
         <div class="action_menu">
             <ul>
+                {% if profile.owned_by == session.get('username') %}
                 <li><a class="nav-item nav-link" href="/profile/{{profile.name}}"><i class="fas fa-user-circle"></i>  View profile</a></li>
+                {% endif %}
                 <li><a class="nav-item nav-link" href="/reset/{{profile.name}}"><i class="fas fa-comment"></i>  New Chat </a></li>
             </ul>
         </div>
@@ -43,11 +45,17 @@
         {% endfor %}
             <!-- Repeat chat messages as needed -->
     </div>
+    {% if profile.offline == 0 %}
     <form id="msgForm" class="chat-input-container" method="POST">
             {{ form.csrf_token }}
             {{ form.content }}
             <span class="chat-send-button" onclick="submitMsg()"><i class="fas fa-location-arrow"></i></span>
     </form>
+    {% else %}
+    <div id="msgForm" class="chat-input-container text-black" method="POST">
+        用户已经下线，无法发送消息
+    </div>
+    {% endif %}
 </div>
 {% if rank >= 98 %}
 <script>

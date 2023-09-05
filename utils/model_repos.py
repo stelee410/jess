@@ -69,14 +69,15 @@ class ProfileRepo():
         self.engine = engine
     def get_profile_by_name(self,name):
         session = Session(self.engine)
-        stmt = select(Profile).where(Profile.name==name)
+        stmt = select(Profile).where(Profile.name==name).where(Profile.deleted==0)
         return session.execute(stmt).scalars().first()
     def get_profile_list(self):
         session = Session(self.engine)
-        stmt = select(Profile)
-        return session.execute(stmt).scalars().all()
+        stmt = select(Profile).where(Profile.deleted==0)
+        result = session.execute(stmt).scalars().all()
+        return result
     
-    def add_or_update_profile(self, data):
+    def add_or_update_profile(self, data, owner):
         session = Session(self.engine)
         existing_profile = self.get_profile_by_name(data['name'])
         if existing_profile is not None:
@@ -84,6 +85,30 @@ class ProfileRepo():
             session.execute(stmt)
             session.commit()
         else:
-            profile = Profile(name=data['name'], displayName=data['displayName'], avatar=data['avatar'], bot=data['bot'], description=data['description'], message=data['message'])
+            profile = Profile(name=data['name'], displayName=data['displayName'], avatar=data['avatar'], bot=data['bot'], description=data['description'], message=data['message'], owned_by=owner, deleted=0, offline=0)
             session.add(profile)
             session.commit()
+
+    def set_profile_offline(self, name):
+        session = Session(self.engine)
+        stmt = update(Profile).where(Profile.name == name).values(offline=1)
+        session.execute(stmt)
+        session.commit()
+
+    def set_profile_online(self, name):
+        session = Session(self.engine)
+        stmt = update(Profile).where(Profile.name == name).values(offline=0)
+        session.execute(stmt)
+        session.commit()
+
+    def delete_profile(self,name):
+        session = Session(self.engine)
+        stmt = update(Profile).where(Profile.name == name).values(deleted=1)
+        session.execute(stmt)
+        session.commit()
+
+    def transfer_profile(self, name, from_username, to_username):
+        session = Session(self.engine)
+        stmt = update(Profile).where(Profile.name==name).where(Profile.owned_by == from_username).values(owned_by=to_username)
+        session.execute(stmt)
+        session.commit()

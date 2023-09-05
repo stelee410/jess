@@ -23,6 +23,9 @@ class Profile(Base):
     bot = sa.Column(sa.String(100), nullable=False)
     description = sa.Column(sa.Text, nullable=False)
     message = sa.Column(sa.Text, nullable=False)
+    offline = sa.Column(sa.Integer, nullable=False)
+    deleted = sa.Column(sa.Integer, nullable=False)
+    owned_by = sa.Column(sa.String(100), nullable=False)
 
 class User(Base):
     __tablename__ = 'user'
