@@ -63,6 +63,20 @@ class UserRepo():
         session = Session(self.engine)
         stmt = select(User).where(User.username==username).where(User.password==password)
         return session.execute(stmt).scalars().first()
+    def get_user_by_username(self, username):
+        session = Session(self.engine)
+        stmt = select(User).where(User.username==username)
+        return session.execute(stmt).scalars().first()
+    def update_user(self, username, data):
+        session = Session(self.engine)
+        stmt = update(User).where(User.username == username).values(displayName=data['displayName'], avatar=data['avatar'], description=data['description'])
+        session.execute(stmt)
+        session.commit()
+    def update_password(self, username, password_hashed, new_password_hashed):
+        session = Session(self.engine)
+        stmt = update(User).where(User.username == username).where(User.password==password_hashed).values(password=new_password_hashed)
+        session.execute(stmt)
+        session.commit()
 
 class ProfileRepo():
     def __init__(self,engine) -> None:

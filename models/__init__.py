@@ -33,3 +33,5 @@ class User(Base):
     username = sa.Column(sa.String(100), nullable=False)
     displayName = sa.Column(sa.String(100), nullable=False)
     password = sa.Column(sa.String(100), nullable=False)
+    avatar = sa.Column(sa.String(100), nullable=False)
+    description = sa.Column(sa.Text, nullable=True)

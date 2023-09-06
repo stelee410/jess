@@ -43,6 +43,15 @@ def simple_login_required(f):
     return decorated_function
 
 
+class UserForm(FlaskForm):
+    displayName = StringField(label="昵称", validators=[DataRequired(), Length(1, 20)])
+    avatar = FileField(label="头像", validators=[FileAllowed(['jpg', 'png'], 'Images only!')])
+    description = TextAreaField(label="描述", validators=[Length(0, 2048)], render_kw={"rows":"10"})
+    password = PasswordField(label="旧密码", validators=[Length(0, 20)])
+    password_new = PasswordField(label="新密码", validators=[Length(0, 20)])
+    password_new_confirm = PasswordField(label="确认密码", validators=[Length(0, 20)])
+    submit = SubmitField('保存')
+    
 
 class ChatForm(FlaskForm):
     content = TextAreaField(label="", render_kw={"class":"form-control type_msg"})
@@ -57,8 +66,8 @@ class DeleteForm(FlaskForm):
     submit = SubmitField('发送')
 
 class LoginForm(FlaskForm):
-    username = StringField(label="用户名", validators=[DataRequired(), Length(1, 10)])
-    password = PasswordField(label="密码", validators=[DataRequired(), Length(1, 10)])
+    username = StringField(label="用户名", validators=[DataRequired(), Length(1, 20)])
+    password = PasswordField(label="密码", validators=[DataRequired(), Length(1, 20)])
     submit = SubmitField('登录')
 
 class ProfileForm(FlaskForm):
@@ -102,6 +111,7 @@ def reset(name):
 @simple_login_required
 def chat(name):
     username = session.get('username')
+    avatar = session.get('avatar')
     profile = profile_repo.get_profile_by_name(name)
     bot = load_bot(profile)
     repo = ChatHistoryRepo(engine,username)
@@ -121,7 +131,7 @@ def chat(name):
     return render_template('chat.html', form=form, \
                            history=rebuild_history(history),\
                             history_len=len(history), rank=rank, \
-                            profile = profile)
+                            profile = profile, current_user_avatar = avatar)
 
 @app.route('/profile/<name>', methods=['GET','POST'])
 @simple_login_required
@@ -135,6 +145,8 @@ def profile(name):
         if form.avatar.data:
             file = form.avatar.data
             filename = secure_filename(file.filename)
+            current_timestamp = int(time.time())
+            filename = f"{current_timestamp}_{filename}"
             if '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS:
                 file.save(os.path.join('./static/profiles', filename))
                 data['avatar'] = f"profiles/{filename}"
@@ -162,6 +174,8 @@ def new_profile():
         if form.avatar.data:
             file = form.avatar.data
             filename = secure_filename(file.filename)
+            current_timestamp = int(time.time())
+            filename = f"{current_timestamp}_{filename}"
             if '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS:
                 file.save(os.path.join('./static/profiles', filename))
                 data['avatar'] = f"profiles/{filename}"
@@ -184,6 +198,7 @@ def login():
         else:
             session['username'] = username
             session['displayName'] = user.displayName
+            session['avatar'] = user.avatar
             return redirect("/")
     return render_template("login.html", form=form)
 
@@ -192,6 +207,7 @@ def login():
 def logout():
     session['username'] = None
     session['displayName'] = None
+    session['avatar'] = None
     return redirect("/login")
 
 @app.route('/profile/<name>/offline', methods=['GET'])
@@ -236,6 +252,47 @@ def delete(name):
         else:
             flash('输入错误')
     return render_template("delete.html", form=form)
+@app.route('/my', methods=['GET','POST'])
+@simple_login_required
+def my():
+    username = session.get('username')
+    user = UserRepo(engine).get_user_by_username(username)
+    session['avatar'] = user.avatar
+    session['displayName'] = user.displayName
+
+    form = UserForm()
+    if form.validate_on_submit():
+        data ={}
+        if form.avatar.data:
+            file = form.avatar.data
+            filename = secure_filename(file.filename)
+            current_timestamp = int(time.time())
+            filename = f"{current_timestamp}_{filename}"
+            if '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS:
+                file.save(os.path.join('./static/profiles', filename))
+                data['avatar'] = f"profiles/{filename}"
+        else:
+            data['avatar'] = user.avatar
+        data['displayName'] = form.displayName.data
+        data['description'] = form.description.data
+        UserRepo(engine).update_user(username, data)
+
+        if form.password_new.data:
+            password_hashed = get_password_hash(form.password.data,app.secret_key)
+            new_password_hashed = get_password_hash(form.password_new.data,app.secret_key)
+            if user.password != password_hashed:
+                flash('旧密码错误')
+                return render_template('my.html', form = form)
+            if form.password_new.data != form.password_new_confirm.data:
+                flash('两次输入的密码不一致')
+                return render_template('my.html', form = form)
+            UserRepo(engine).update_password(username,password_hashed,new_password_hashed)
+
+        return redirect("/my")
+    else:
+        form.displayName.data = user.displayName
+        form.description.data = user.description
+    return render_template('my.html', form = form)
 
 if __name__ == '__main__':
     app.run(debug=True, port=8080)
