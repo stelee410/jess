@@ -15,6 +15,7 @@ from sqlalchemy import create_engine
 from flask_wtf.file import FileRequired, FileAllowed, FileField
 from werkzeug.utils import secure_filename
 from functools import wraps
+from utils import config
 
 import os
 
@@ -24,8 +25,8 @@ os.environ['https_proxy'] = 'http://127.0.0.1:7890'
 
 
 app = Flask(__name__)
-app.secret_key = 'mysecretsalt'
-engine = create_engine("sqlite:///jess.db")
+app.secret_key = config.secret_key
+engine = create_engine(config.connection_str)
 profile_repo = ProfileRepo(engine)
 
 

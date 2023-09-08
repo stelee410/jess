@@ -4,3 +4,5 @@ flask_wtf
 flask_sqlalchemy
 openai
 alembic
+pymysql
+cryptography

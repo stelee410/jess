@@ -1,0 +1,4 @@
+import os
+
+secret_key = ''
+connection_str = f""

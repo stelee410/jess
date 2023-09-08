@@ -59,6 +59,11 @@ class ChatHistoryRepo():
 class UserRepo():
     def __init__(self,engine) -> None:
         self.engine = engine
+    def insert_user(self,username,displayName,password,avatar):
+        session = Session(self.engine)
+        user = User(username=username, displayName=displayName, password=password, avatar=avatar)
+        session.add(user)
+        session.commit()
     def get_user_by_username_password(self,username,password):
         session = Session(self.engine)
         stmt = select(User).where(User.username==username).where(User.password==password)
