@@ -29,8 +29,18 @@ function submitMsg(){
         $('#msgForm').html('<p class=text-black>等待对方响应...</p>');
     }
 }
+var resizeId;
+function doneResizing(){
+    $('#chatbox').width($(window).width()*0.8);
+    $('#chatbox').height($(window).height()*0.8);
+}
 $(document).ready(function(){
     $('#action_menu_btn').click(function(){
         $('.action_menu').toggle();
     });
+    doneResizing();
+    $(window).resize(function(){
+        clearTimeout(resizeId);
+        resizeId = setTimeout(doneResizing, 500);
+      });
 });

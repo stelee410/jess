@@ -145,8 +145,8 @@ body {
     height: 700px;
     background-color:#F3F3FB;
     position: absolute;
-    top: 13%;
-    left: 23%;
+    top: 10%;
+    margin:auto;
     padding: 20px;
     box-sizing: border-box;
     display: flex;
