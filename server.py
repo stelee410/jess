@@ -9,7 +9,7 @@ from flask_bootstrap import Bootstrap5
 import time
 from datetime import datetime
 from bot.chat import LoveBot, OpenAIBot
-from utils.model_repos import ChatHistoryRepo,rebuild_history,ProfileRepo,UserRepo
+from utils.model_repos import ChatHistoryRepo,rebuild_history,ProfileRepo,UserRepo, PROFILE_SCOPE_PUBLIC, PROFILE_SCOPE_PRIVATE
 from utils.password_hash import get_password_hash
 from sqlalchemy import create_engine
 from flask_wtf.file import FileRequired, FileAllowed, FileField
@@ -18,11 +18,6 @@ from functools import wraps
 from utils import config
 
 import os
-
-os.environ['http_proxy'] = 'http://127.0.0.1:7890'
-os.environ['https_proxy'] = 'http://127.0.0.1:7890'
-
-
 
 app = Flask(__name__)
 app.secret_key = config.secret_key
@@ -51,7 +46,7 @@ class UserForm(FlaskForm):
     password = PasswordField(label="旧密码", validators=[Length(0, 20)])
     password_new = PasswordField(label="新密码", validators=[Length(0, 20)])
     password_new_confirm = PasswordField(label="确认密码", validators=[Length(0, 20)])
-    submit = SubmitField('保存')
+    submit = SubmitField('保存',render_kw={"class":'single-btn',"style":'margin-left:0px'})
     
 
 class ChatForm(FlaskForm):
@@ -97,8 +92,11 @@ def load_bot(profile):
 @app.route('/', methods=['GET'])
 @simple_login_required
 def index():
+    username = session.get('username')
     profile_list = profile_repo.get_profile_list()
-    return render_template('index.html', profiles = profile_list,userDisplayName = session.get('displayName'))
+    profile_private_list = profile_repo.get_profile_private_list(username)
+    return render_template('index.html', profiles = profile_list,profiles_private=profile_private_list,\
+                           userDisplayName = session.get('displayName'))
 
 
 @app.route('/reset/<name>', methods=['GET'])
@@ -253,6 +251,17 @@ def delete(name):
         else:
             flash('输入错误')
     return render_template("delete.html", form=form)
+
+@app.route('/profile/<name>/:scope/<scope_str>', methods=['GET','POST'])
+@simple_login_required
+def set_profile_scope(name, scope_str):
+    if scope_str == 'public':
+        scope = PROFILE_SCOPE_PUBLIC
+    else:
+        scope = PROFILE_SCOPE_PRIVATE
+    profile_repo.set_profile_scope(name,scope)
+    return redirect(f"/profile/{name}")
+
 @app.route('/my', methods=['GET','POST'])
 @simple_login_required
 def my():

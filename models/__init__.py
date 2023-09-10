@@ -1,6 +1,9 @@
 import sqlalchemy as sa
 from sqlalchemy.ext.declarative import declarative_base
 
+SCOPE_PUBLIC = 0
+SCOPE_PRIVATE = 1
+
 Base = declarative_base()
 
 class ChatHistory(Base):
@@ -26,6 +29,7 @@ class Profile(Base):
     offline = sa.Column(sa.Integer, nullable=False)
     deleted = sa.Column(sa.Integer, nullable=False)
     owned_by = sa.Column(sa.String(100), nullable=False)
+    scope = sa.Column(sa.Integer, nullable=False)
 
 class User(Base):
     __tablename__ = 'user'

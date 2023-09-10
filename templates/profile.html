@@ -1,6 +1,7 @@
 {% extends 'layout.html' %}
 {% from 'bootstrap5/form.html' import render_form, render_field, render_form_row %}
 {% block content %}
+<div id="container">
 <div id="chatbox">
     <div id="banner">
         <a href="/chat/{{name}}">
@@ -14,13 +15,22 @@
     </div>
     <div class="chat-input-container">
         <input type="submit" value="更新" class="btn btn-primary" onclick="$('form').submit()"/>&nbsp;&nbsp;&
+        
         {% if profile.offline == False %}
         <a class="btn btn-warning" href="/profile/{{name}}/offline">设置下线</a>&nbsp;&nbsp;&
         {% else %}
         <a class="btn btn-info" href="/profile/{{name}}/online">设置上线</a>&nbsp;&nbsp;&
         {% endif %}
+
+        {% if profile.scope == 0 %}
+        <a class="btn btn-info" href="/profile/{{name}}/:scope/private">设置为私有</a>&nbsp;&nbsp;&
+        {% else %}
+        <a class="btn btn-success" href="/profile/{{name}}/:scope/public">设置公开可见</a>&nbsp;&nbsp;&
+        {% endif %}
+
         <a class="btn btn-secondary" href="/profile/{{name}}/transfer">转交所属权</a>&nbsp;&nbsp;&
         <a class="btn btn-danger" href="/profile/{{name}}/delete"/>删除</a>&nbsp;&nbsp;&
     </div>
+</div>
 </div>
 {% endblock %}

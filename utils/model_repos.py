@@ -1,9 +1,11 @@
 import json
 import datetime
-from models import ChatHistory, Profile,User
+from models import ChatHistory, Profile,User,SCOPE_PRIVATE,SCOPE_PUBLIC
 from sqlalchemy.orm import Session
 from sqlalchemy import select,delete,update
 
+PROFILE_SCOPE_PUBLIC = SCOPE_PUBLIC
+PROFILE_SCOPE_PRIVATE = SCOPE_PRIVATE
 
 def rebuild_history(history):
     new_history = []
@@ -92,7 +94,12 @@ class ProfileRepo():
         return session.execute(stmt).scalars().first()
     def get_profile_list(self):
         session = Session(self.engine)
-        stmt = select(Profile).where(Profile.deleted==0)
+        stmt = select(Profile).where(Profile.deleted==0).where(Profile.scope==SCOPE_PUBLIC)
+        result = session.execute(stmt).scalars().all()
+        return result
+    def get_profile_private_list(self, owner):
+        session = Session(self.engine)
+        stmt = select(Profile).where(Profile.deleted==0).where(Profile.scope==SCOPE_PRIVATE).where(Profile.owned_by==owner)
         result = session.execute(stmt).scalars().all()
         return result
     
@@ -104,7 +111,7 @@ class ProfileRepo():
             session.execute(stmt)
             session.commit()
         else:
-            profile = Profile(name=data['name'], displayName=data['displayName'], avatar=data['avatar'], bot=data['bot'], description=data['description'], message=data['message'], owned_by=owner, deleted=0, offline=0)
+            profile = Profile(name=data['name'], displayName=data['displayName'], avatar=data['avatar'], bot=data['bot'], description=data['description'], message=data['message'], owned_by=owner, deleted=0, offline=0, scope = PROFILE_SCOPE_PUBLIC)
             session.add(profile)
             session.commit()
 
@@ -129,5 +136,11 @@ class ProfileRepo():
     def transfer_profile(self, name, from_username, to_username):
         session = Session(self.engine)
         stmt = update(Profile).where(Profile.name==name).where(Profile.owned_by == from_username).values(owned_by=to_username)
+        session.execute(stmt)
+        session.commit()
+    
+    def set_profile_scope(self, name, scope):
+        session = Session(self.engine)
+        stmt = update(Profile).where(Profile.name==name).values(scope=scope)
         session.execute(stmt)
         session.commit()

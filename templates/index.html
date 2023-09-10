@@ -1,34 +1,63 @@
 {% extends 'layout.html' %}
 {% from 'bootstrap5/form.html' import render_form, render_field, render_form_row %}
 {% block content %}
-    {% for profile in profiles %}
-    <div class="box">
-        <a href='/chat/{{profile["name"]}}'>
-            <div class="avatar-container">
-                {% if profile.offline == 0 %}
-                <div class="dot online"></div>
-                {% else %}
-                <div class="dot offline"></div>
-                {% endif %}
-                <img src="{{ url_for('static', filename=profile.avatar) }}" class="rounded-circle user_img"/>
-            </div>
-            <div class="text">
-                <br> {{profile["displayName"]}}
-             </div>
-             <div class="text2">
-                {% if profile.offline == 0 %}
-                {{profile["displayName"]}} in online
-                {% else %}
-                {{profile["displayName"]}} is offline
-                {% endif %}
-             </div>
-        </a>
-    </div>   
-    {% endfor %}
-    <div class="box">
-        <a href="/profile/:create">
-            <img class="inner-image" src="{{ url_for('static', filename='images/icon@2x.png') }}"  alt="Box 1 Image">
-            
-        </a>
+    <div id="container">
+        {% for profile in profiles %}
+        <div class="box">
+            <a href='/chat/{{profile["name"]}}'>
+                <div class="avatar-container">
+                    {% if profile.offline == 0 %}
+                    <div class="dot online"></div>
+                    {% else %}
+                    <div class="dot offline"></div>
+                    {% endif %}
+                    <img src="{{ url_for('static', filename=profile.avatar) }}" class="rounded-circle user_img"/>
+                </div>
+                <div class="text profile-name">
+                    <br> {{profile["displayName"]}}
+                </div>
+                <div class="text2 profile-name">
+                    {% if profile.offline == 0 %}
+                    {{profile["displayName"]}} in online
+                    {% else %}
+                    {{profile["displayName"]}} is offline
+                    {% endif %}
+                </div>
+            </a>
+        </div>   
+        {% endfor %}
+        <div class="box">
+            <a href="/profile/:create">
+                <img class="inner-image" src="{{ url_for('static', filename='images/icon@2x.png') }}"  alt="Box 1 Image">
+                
+            </a>
+        </div>
+    </div>
+    <hr class="hr"/>
+    <div id="container">
+        {% for profile in profiles_private %}
+        <div class="box">
+            <a href='/chat/{{profile["name"]}}'>
+                <div class="avatar-container">
+                    {% if profile.offline == 0 %}
+                    <div class="dot online"></div>
+                    {% else %}
+                    <div class="dot offline"></div>
+                    {% endif %}
+                    <img src="{{ url_for('static', filename=profile.avatar) }}" class="rounded-circle user_img"/>
+                </div>
+                <div class="text">
+                    <br> {{profile["displayName"]}}
+                </div>
+                <div class="text2">
+                    {% if profile.offline == 0 %}
+                    {{profile["displayName"]}} in online
+                    {% else %}
+                    {{profile["displayName"]}} is offline
+                    {% endif %}
+                </div>
+            </a>
+        </div>   
+        {% endfor %}
     </div>
 {% endblock %}

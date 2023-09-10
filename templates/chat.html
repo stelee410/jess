@@ -1,6 +1,7 @@
 {% extends 'layout.html' %}
 {% from 'bootstrap5/form.html' import render_form, render_field, render_form_row %}
 {% block content %}
+<div id="container">
 <div id="chatbox">
     <div id="banner">
         <a href="/">
@@ -73,4 +74,5 @@
     $("#chat-container")[0].scrollTop = $("#chat-container")[0].scrollHeight;
     $("#content").focus()
 </script>
+</div>
 {% endblock %}
