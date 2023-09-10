@@ -112,6 +112,10 @@ def chat(name):
     username = session.get('username')
     avatar = session.get('avatar')
     profile = profile_repo.get_profile_by_name(name)
+    if profile is None:
+        return render_template("404.html", message=f"Profile {name} not found")
+    if profile.scope == PROFILE_SCOPE_PRIVATE and profile.owned_by != username:
+        return render_template("500.html", message=f"Profile {name} not owned by {username}")
     bot = load_bot(profile)
     repo = ChatHistoryRepo(engine,username)
     history = repo.get_chat_history_by_name(name)
@@ -139,6 +143,8 @@ def profile(name):
     profile = profile_repo.get_profile_by_name(name)
     if profile is None:
         return render_template("404.html", message=f"Profile {name} not found")
+    if profile.owned_by != session.get('username'):
+        return render_template("500.html", message=f"Profile {name} not owned by {session.get('username')}")
     if form.validate_on_submit():
         data = form.data
         if form.avatar.data:
@@ -212,12 +218,18 @@ def logout():
 @app.route('/profile/<name>/offline', methods=['GET'])
 @simple_login_required
 def offline(name):
+    profile = profile_repo.get_profile_by_name(name)
+    if profile.owned_by != session.get('username'):
+        return render_template("500.html", message=f"Profile {name} not owned by {session.get('username')}")
     profile_repo.set_profile_offline(name)
     return redirect(f"/profile/{name}")
 
 @app.route('/profile/<name>/online', methods=['GET'])
 @simple_login_required
 def online(name):
+    profile = profile_repo.get_profile_by_name(name)
+    if profile.owned_by != session.get('username'):
+        return render_template("500.html", message=f"Profile {name} not owned by {session.get('username')}")
     profile_repo.set_profile_online(name)
     return redirect(f"/profile/{name}")
 
@@ -259,6 +271,9 @@ def set_profile_scope(name, scope_str):
         scope = PROFILE_SCOPE_PUBLIC
     else:
         scope = PROFILE_SCOPE_PRIVATE
+    profile = profile_repo.get_profile_by_name(name)
+    if profile.owned_by != session.get('username'):
+        return render_template("500.html", message=f"Profile {name} not owned by {session.get('username')}")
     profile_repo.set_profile_scope(name,scope)
     return redirect(f"/profile/{name}")
 
