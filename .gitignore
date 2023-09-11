@@ -30,6 +30,7 @@ profiles/*
 jess.db
 utils/config.py
 static/profiles
+alembic.ini
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
