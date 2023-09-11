@@ -34,8 +34,6 @@ class ChatHistoryRepo():
         session = Session(self.engine)
         stmt = select(ChatHistory).where(ChatHistory.username == self.username).where(ChatHistory.name == name)
         chat_history = []
-        if session.execute(stmt).scalars().first() is None:
-            return chat_history
         for chat in  session.execute(stmt).scalars():
             chat_history.append(json.loads(chat.message))
         return chat_history
