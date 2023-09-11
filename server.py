@@ -120,6 +120,7 @@ def chat(name):
     uprRepo = UserProfileRelRepo(engine)
     user_profile_rel =  uprRepo.get_user_profile_rel(username, profile.name)
     
+    #udpate user_profile_rel
     if user_profile_rel is None:
         uprRepo.add_user_profile_rel(username, profile.name)
     else:
