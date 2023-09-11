@@ -39,3 +39,13 @@ class User(Base):
     password = sa.Column(sa.String(100), nullable=False)
     avatar = sa.Column(sa.String(100), nullable=False)
     description = sa.Column(sa.Text, nullable=True)
+
+class User_Profile_Rel(Base):
+    __tablename__ = 'user_profile_rel'
+    id = sa.Column(sa.Integer, primary_key=True)
+    username = sa.Column(sa.String(100), nullable=False)
+    profile_name = sa.Column(sa.String(100), nullable=False)
+    last_chat_at = sa.Column(sa.DateTime, nullable=False)
+    number_of_chats = sa.Column(sa.Integer, nullable=False)
+    relations = sa.Column(sa.Integer, nullable=False)  #0: stranger, 1: friends, 2: close friends
+    

@@ -1,8 +1,11 @@
 import json
 import datetime
-from models import ChatHistory, Profile,User,SCOPE_PRIVATE,SCOPE_PUBLIC
+from models import ChatHistory, Profile,User,User_Profile_Rel
+from models import SCOPE_PRIVATE,SCOPE_PUBLIC
 from sqlalchemy.orm import Session
-from sqlalchemy import select,delete,update
+from sqlalchemy import select,delete,update,and_
+from sqlalchemy.orm import outerjoin
+import logging
 
 PROFILE_SCOPE_PUBLIC = SCOPE_PUBLIC
 PROFILE_SCOPE_PRIVATE = SCOPE_PRIVATE
@@ -102,6 +105,30 @@ class ProfileRepo():
         stmt = select(Profile).where(Profile.deleted==0).where(Profile.scope==SCOPE_PRIVATE).where(Profile.owned_by==owner)
         result = session.execute(stmt).scalars().all()
         return result
+        
+    def get_ordered_profile_list(self, username):
+        session = Session(self.engine)
+        query = (
+            session.query(Profile)
+            .outerjoin(User_Profile_Rel,and_(Profile.name==User_Profile_Rel.profile_name,User_Profile_Rel.username==username))
+            .filter(Profile.deleted==0)
+            .filter(Profile.scope==SCOPE_PUBLIC)
+            .order_by(User_Profile_Rel.last_chat_at.desc())
+        )
+        print(query.statement)
+        return query.all()
+    
+    def get_ordered_profile_private_list(self, owner):
+        session = Session(self.engine)
+        query = (
+            session.query(Profile)
+            .outerjoin(User_Profile_Rel,and_(Profile.name==User_Profile_Rel.profile_name,User_Profile_Rel.username==owner))
+            .filter(Profile.deleted==0)
+            .filter(Profile.scope==SCOPE_PRIVATE)
+            .filter(Profile.owned_by==owner)
+            .order_by(User_Profile_Rel.last_chat_at.desc())
+        )
+        return query.all()
     
     def add_or_update_profile(self, data, owner):
         session = Session(self.engine)
@@ -142,5 +169,45 @@ class ProfileRepo():
     def set_profile_scope(self, name, scope):
         session = Session(self.engine)
         stmt = update(Profile).where(Profile.name==name).values(scope=scope)
+        session.execute(stmt)
+        session.commit()
+
+class UserProfileRelRepo():
+    def __init__(self,engine) -> None:
+        self.engine = engine
+    def get_user_profile_rel(self,username,profile_name):
+        session = Session(self.engine)
+        stmt = select(User_Profile_Rel).where(User_Profile_Rel.username==username).where(User_Profile_Rel.profile_name==profile_name)
+        return session.execute(stmt).scalars().first()
+    def add_user_profile_rel(self,username, profilename):
+        session = Session(self.engine)
+        user_profile_rel = User_Profile_Rel(username=username, profile_name=profilename, last_chat_at=datetime.datetime.now(), number_of_chats=0, relations=0)
+        session.add(user_profile_rel)
+        session.commit()
+
+    def quick_update(self, username, profilename):
+        session = Session(self.engine)
+        stmt = update(User_Profile_Rel).where(User_Profile_Rel.username == username).where(User_Profile_Rel.profile_name == profilename).values(number_of_chats=User_Profile_Rel.number_of_chats+1,last_chat_at=datetime.datetime.now())
+        session.execute(stmt)
+        session.commit()
+
+    def update_user_porfile_rel(self,username, profilename, data):
+        if 'username' in data:
+            del data['username']
+        if 'profile_name' in data:
+            del data['profile_name']
+        logging.warning("data contains username and profile_name, wnich should not be updated")
+        session = Session(self.engine)
+        stmt = update(User_Profile_Rel).where(User_Profile_Rel.username == username).where(User_Profile_Rel.profile_name == profilename).values(**data)
+        session.execute(stmt)
+        session.commit()
+    def update_user_profile_rel_count(self,username, profilename):
+        session = Session(self.engine)
+        stmt = update(User_Profile_Rel).where(User_Profile_Rel.username == username).where(User_Profile_Rel.profile_name == profilename).values(number_of_chats=User_Profile_Rel.number_of_chats+1)
+        session.execute(stmt)
+        session.commit()
+    def update_user_profile_rel_last_chat_at(self,username, profilename):
+        session = Session(self.engine)
+        stmt = update(User_Profile_Rel).where(User_Profile_Rel.username == username).where(User_Profile_Rel.profile_name == profilename).values(last_chat_at=datetime.datetime.now())
         session.execute(stmt)
         session.commit()

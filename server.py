@@ -9,7 +9,7 @@ from flask_bootstrap import Bootstrap5
 import time
 from datetime import datetime
 from bot.chat import LoveBot, OpenAIBot
-from utils.model_repos import ChatHistoryRepo,rebuild_history,ProfileRepo,UserRepo, PROFILE_SCOPE_PUBLIC, PROFILE_SCOPE_PRIVATE
+from utils.model_repos import ChatHistoryRepo,rebuild_history,ProfileRepo,UserRepo, UserProfileRelRepo,PROFILE_SCOPE_PUBLIC, PROFILE_SCOPE_PRIVATE
 from utils.password_hash import get_password_hash
 from sqlalchemy import create_engine
 from flask_wtf.file import FileRequired, FileAllowed, FileField
@@ -93,8 +93,8 @@ def load_bot(profile):
 @simple_login_required
 def index():
     username = session.get('username')
-    profile_list = profile_repo.get_profile_list()
-    profile_private_list = profile_repo.get_profile_private_list(username)
+    profile_list = profile_repo.get_ordered_profile_list(username)
+    profile_private_list = profile_repo.get_ordered_profile_private_list(username)
     return render_template('index.html', profiles = profile_list,profiles_private=profile_private_list,\
                            userDisplayName = session.get('displayName'))
 
@@ -116,6 +116,15 @@ def chat(name):
         return render_template("404.html", message=f"Profile {name} not found")
     if profile.scope == PROFILE_SCOPE_PRIVATE and profile.owned_by != username:
         return render_template("500.html", message=f"Profile {name} not owned by {username}")
+
+    uprRepo = UserProfileRelRepo(engine)
+    user_profile_rel =  uprRepo.get_user_profile_rel(username, profile.name)
+    
+    if user_profile_rel is None:
+        uprRepo.add_user_profile_rel(username, profile.name)
+    else:
+        uprRepo.quick_update(username, profile.name)
+
     bot = load_bot(profile)
     repo = ChatHistoryRepo(engine,username)
     history = repo.get_chat_history_by_name(name)
