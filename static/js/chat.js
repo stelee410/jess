@@ -33,6 +33,10 @@ var resizeId;
 function doneResizing(){
     $('#chatbox').width($(window).width()*0.8);
     $('#chatbox').height($(window).height()*0.8);
+    if (("#chat-container").length){
+        $("#chat-container")[0].scrollTop = $("#chat-container")[0].scrollHeight;
+        $("#content").focus()
+    }
 }
 $(document).ready(function(){
     $('#action_menu_btn').click(function(){

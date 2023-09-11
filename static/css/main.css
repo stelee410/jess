@@ -147,8 +147,8 @@ body {
     width: 900px;
     height: 700px;
     background-color:#F3F3FB;
-    position: absolute;
-    top: 10%;
+    position: relative;
+    top: -80px;
     margin:auto;
     padding: 20px;
     box-sizing: border-box;
