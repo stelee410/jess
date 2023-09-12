@@ -21,7 +21,7 @@ import os
 
 app = Flask(__name__)
 app.secret_key = config.secret_key
-engine = create_engine(config.connection_str,pool_size=20, max_overflow=0)
+engine = create_engine(config.connection_str,pool_size=1024, max_overflow=0)
 profile_repo = ProfileRepo(engine)
 
 
