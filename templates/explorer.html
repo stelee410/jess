@@ -1,0 +1,91 @@
+{% extends 'layout.html' %}
+{% from 'bootstrap5/form.html' import render_form, render_field, render_form_row %}
+{% block content %}
+<style>
+    /* overwritting */
+    #content {
+        background-color: rgba(0, 0, 0, 0.2);
+        color: white;
+    }
+    #chatbox {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+    #banner{
+        color: white;
+    }
+</style>
+<div id="container">
+<div id="chatbox">
+    <div id="banner">
+        <a href="/">
+            <div class="img_cont_msg">
+                <img src="{{ url_for('static', filename=profile.avatar) }}" class="rounded-circle user_img_msg" style="margin-top: -10px; margin-right: 10px;">
+            </div>
+        </a>
+        <div>{{profile.displayName}}</div>
+        <span id="action_menu_btn"><i class="fas fa-ellipsis-v"></i></span>
+        <div class="action_menu">
+            <ul>
+                <li><a class="nav-item nav-link" href="/login"><i class="fas fa-user-circle"></i> Login</a></li>
+            </ul>
+        </div>
+
+    </div>
+
+    <div id="chat-container">
+        {% for item in history %}
+                {% if item.role == 'user' %}
+                    <div class="d-flex justify-content-end mb-4 user-message">
+                        <div class="msg_cotainer_send">
+                            {{ item.content}}
+                            <span class="msg_time_send"></span>
+                        </div>
+                        <div class="img_cont_msg">
+                            <img src="{{ url_for('static', filename=current_user_avatar) }}"  class="rounded-circle user_img_msg">
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="d-flex justify-content-start mb-4 other-message">
+                        <div class="img_cont_msg">
+                            <img src="{{ url_for('static', filename=profile.avatar) }}" class="rounded-circle user_img_msg">
+                        </div>
+                        <div class="msg_cotainer">
+                            {{ item.content }}
+                            <span class="msg_time"></span>
+                        </div>
+                    </div>
+                {% endif %}
+        {% endfor %}
+            <!-- Repeat chat messages as needed -->
+    </div>
+    {% if profile.offline == 0 %}
+    <form id="msgForm" class="chat-input-container" method="POST">
+            {{ form.csrf_token }}
+            {{ form.content }}
+            <span class="chat-send-button" onclick="submitMsg()"><i class="fas fa-location-arrow"></i></span>
+    </form>
+    {% else %}
+    <div id="msgForm" class="chat-input-container text-black" method="POST">
+        用户已经下线，无法发送消息
+    </div>
+    {% endif %}
+</div>
+{% if rank >= 98 %}
+<script>
+    countdown("登录啦～",function(){
+        window.location.href = '/login';
+    })
+</script>
+{% endif %}
+<script lang="javascript">
+    
+    $('#content').on('keydown', function(event) {
+        if (event.keyCode === 13 && !event.shiftKey) {
+            event.preventDefault();
+            submitMsg();
+        }
+    });
+</script>
+</div>
+{% endblock %}

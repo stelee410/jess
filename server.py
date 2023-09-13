@@ -17,6 +17,8 @@ from werkzeug.utils import secure_filename
 from functools import wraps
 from utils import config
 
+from controllers import Explorer
+
 import os
 
 app = Flask(__name__)
@@ -34,10 +36,14 @@ def simple_login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if session.get('username') is None:
-            return redirect("/login")
+            return redirect("/explore")
         return f(*args, **kwargs)
     return decorated_function
 
+context = {
+    "app": app,
+    "engine": engine,
+}
 
 class UserForm(FlaskForm):
     displayName = StringField(label="昵称", validators=[DataRequired(), Length(1, 20)])
@@ -67,8 +73,8 @@ class LoginForm(FlaskForm):
     submit = SubmitField('登录')
 
 class ProfileForm(FlaskForm):
-    name = StringField(label="姓名", validators=[DataRequired(), Length(1, 20)])
-    displayName = StringField(label="昵称", validators=[DataRequired(), Length(1, 20)])
+    name = StringField(label="唯一数字人ID", validators=[DataRequired(), Length(1, 20)])
+    displayName = StringField(label="姓名", validators=[DataRequired(), Length(1, 20)])
     avatar = FileField(label="头像", validators=[FileRequired(), FileAllowed(['jpg', 'png'], 'Images only!')])
     #avatar = StringField(label="头像", validators=[DataRequired(), Length(1, 20)])
     bot = StringField(label="机器人", validators=[DataRequired(), Length(1, 20)],default='OpenAIBot')
@@ -98,6 +104,11 @@ def index():
     return render_template('index.html', profiles = profile_list,profiles_private=profile_private_list,\
                            userDisplayName = session.get('displayName'))
 
+@app.route('/explore', methods=['GET','POST'])
+def explore():
+    
+    explorer =  Explorer({**context, **{"profile_name": "pixie"}})
+    return explorer.execute()
 
 @app.route('/reset/<name>', methods=['GET'])
 @simple_login_required

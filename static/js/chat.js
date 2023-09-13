@@ -23,6 +23,33 @@ function addEmoji(emoji) {
 function showLove(){
     addEmoji('&#x2764;')
 }
+function countdown(msg,callback){
+    var countdown = document.createElement('div');
+    countdown.style.fontSize = '80px';
+    countdown.style.textAlign = 'center';
+    countdown.style.marginTop = '100px';
+    countdown.style.position = 'absolute';
+    countdown.style.top = '0';
+    countdown.style.width = '100%';
+    document.body.appendChild(countdown);
+    var timeLeft = 3;
+
+    // Update the countdown timer every second
+    var countdownInterval = setInterval(function() {
+    // Update the countdown timer text
+    countdown.innerHTML = timeLeft;
+
+    // Decrement the time left
+    timeLeft--;
+
+    // Stop the countdown when the time reaches 0
+    if (timeLeft < 0) {
+        clearInterval(countdownInterval);
+        countdown.innerHTML = msg;
+        callback()
+    }
+    }, 1000);
+}
 function submitMsg(){
     if($("#msgForm textarea").val().trim()!==""){
         $("#msgForm").submit();
