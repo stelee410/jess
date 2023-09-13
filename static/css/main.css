@@ -174,6 +174,14 @@ body {
     margin-top: 10px;
     text-align: left;
 }
+#profile-container {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+    text-align: left;
+}
 .message-container {
     display: flex;
     justify-content: flex-start;
