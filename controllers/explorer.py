@@ -20,12 +20,12 @@ class Explorer(Base):
         if form.validate_on_submit():
             history = session.get('history', [])
             content = form.content.data
-            my_msg,assistent_msg = bot.get_last_two_messages(content, history)
-            if assistent_msg.content.find("【登录】") != -1:
+            my_msg,assistant_msg = bot.get_last_two_messages(content, history)
+            if assistant_msg['content'].find("【登录】") != -1:
                 rank = 100
-                assistent_msg.content.replace("【登录】","")
+                assistant_msg['content'].replace("【登录】","")
             history.append(my_msg)
-            history.append(assistent_msg)
+            history.append(assistant_msg)
             session['history'] = history
             form.content.data = ''
 
