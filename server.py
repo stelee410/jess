@@ -8,7 +8,7 @@ from wtforms.fields import *
 from flask_bootstrap import Bootstrap5
 import time
 from datetime import datetime
-from bot.chat import LoveBot, OpenAIBot
+from bot.chat import LoveBot, OpenAIBot,GPT4Bot
 from utils.model_repos import ChatHistoryRepo,rebuild_history,ProfileRepo,UserRepo, UserProfileRelRepo,PROFILE_SCOPE_PUBLIC, PROFILE_SCOPE_PRIVATE
 from utils.password_hash import get_password_hash
 from sqlalchemy import create_engine
@@ -91,6 +91,8 @@ class ProfileUpdateForm(FlaskForm):
 def load_bot(profile):
     if profile.bot == 'LoveBot':
         return LoveBot(profile.description,profile.message)
+    elif profile.bot == 'GPT4Bot':
+        return GPT4Bot(profile.description,profile.message)
     else:
         return OpenAIBot(profile.description,profile.message)
 

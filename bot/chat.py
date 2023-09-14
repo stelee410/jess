@@ -61,6 +61,12 @@ class ExplorerBot(OpenAIBot):
         if len(history) >= 20:
             return {"role":"user","content":message},{"role":"assistant","content":"你已经体验次数了哦，可以微信联系stephenliy 或者【登录】哈。"}
         return super().get_last_two_messages(message, history)
+    
+class GPT4Bot(OpenAIBot):
+    def __init__(self,initMsg,feeds) -> None:
+        super().__init__(initMsg,feeds)
+        self.model = "gpt-4"
+        self.temperature = 1.0
 
 class LoveBot(OpenAIBot):
     def __init__(self,initMsg,feeds) -> None:
