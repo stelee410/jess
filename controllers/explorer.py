@@ -31,6 +31,10 @@ class Explorer(Base):
 
         else:
             session['history'] =[]
+            prompt = f"""
+你好，我是你的引导员，你可以通过跟我对话了解这个平台，试试问问怎么注册或者怎么登录吧～
+    """
+            history = [{"role":"assistant","content":prompt}]
 
         return self.render('explorer.html', form=form, \
                            history=history,\
