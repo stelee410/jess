@@ -11,19 +11,20 @@ PROFILE_SCOPE_PUBLIC = SCOPE_PUBLIC
 PROFILE_SCOPE_PRIVATE = SCOPE_PRIVATE
 
 def rebuild_history(history):
-    new_history = []
-    for item in history:
-        content_string = item['content']
-        try:
-            json_object = json.loads(content_string)
-            content_string = json_object['content']
-        except json.JSONDecodeError:
-            pass
-        if item['role'] == 'user':
-            new_history.append({"role":"user","content":content_string})
-        else:
-            new_history.append({"role":"assistant","content":content_string})
-    return new_history
+    return history
+    # new_history = []
+    # for item in history:
+    #     content_string = item['content']
+    #     try:
+    #         json_object = json.loads(content_string)
+    #         content_string = json_object['content']
+    #     except json.JSONDecodeError:
+    #         pass
+    #     if item['role'] == 'user':
+    #         new_history.append({"role":"user","content":content_string})
+    #     else:
+    #         new_history.append({"role":"assistant","content":content_string})
+    # return new_history
 
 class ChatHistoryRepo():
     def __init__(self,engine,username) -> None:
