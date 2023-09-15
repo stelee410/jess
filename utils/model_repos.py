@@ -62,9 +62,9 @@ class ChatHistoryRepo():
 class UserRepo():
     def __init__(self,engine) -> None:
         self.engine = engine
-    def insert_user(self,username,displayName,password,avatar):
+    def insert_user(self,username,displayName,password,avatar,description=""):
         session = Session(self.engine)
-        user = User(username=username, displayName=displayName, password=password, avatar=avatar)
+        user = User(username=username, displayName=displayName, password=password, avatar=avatar, description=description, invitation_code="N/A", invitation_count=0)
         session.add(user)
         session.commit()
     def get_user_by_username_password(self,username,password):
@@ -75,6 +75,14 @@ class UserRepo():
         session = Session(self.engine)
         stmt = select(User).where(User.username==username)
         return session.execute(stmt).scalars().first()
+    def check_invitation_code_resuable(self, username,invitation_code):
+        session = Session(self.engine)
+        stmt = select(User).where(User.invitation_code == invitation_code).where(User.username!=username)
+        if session.execute(stmt).scalars().first() is None:
+            return True
+        else:
+            return False
+        
     def update_user(self, username, data):
         session = Session(self.engine)
         stmt = update(User).where(User.username == username).values(displayName=data['displayName'], avatar=data['avatar'], description=data['description'])
@@ -85,6 +93,35 @@ class UserRepo():
         stmt = update(User).where(User.username == username).where(User.password==password_hashed).values(password=new_password_hashed)
         session.execute(stmt)
         session.commit()
+    def update_invitation(self, username, invitation_code, invitation_count):
+        session = Session(self.engine)
+        stmt = update(User).where(User.username == username).values(invitation_code=invitation_code, invitation_count=invitation_count)
+        session.execute(stmt)
+        session.commit()
+    def get_invitation_status(self, invitation_code):
+        session = Session(self.engine)
+        stmt = select(User).where(User.invitation_code==invitation_code)
+        result = session.execute(stmt).scalars().first()
+        if result is not None:
+            return result.invitation_code, result.invitation_count
+        else:
+            return 'N/A', 0
+    def is_invitation_code_available(self,invitation_code):
+        session = Session(self.engine)
+        stmt = (select(User).where(User.invitation_code==invitation_code)
+                .where(User.invitation_count>0))
+        if session.execute(stmt).scalars().first() is None:
+            return False
+        else:
+            return True
+
+    def decrease_invitation_count(self, invitation_code):
+        __, count = self.get_invitation_status(invitation_code)
+        if count > 0 :
+            session = Session(self.engine)
+            stmt = update(User).where(User.invitation_code == invitation_code).values(invitation_count = count-1)
+            session.execute(stmt)
+            session.commit()
 
 class ProfileRepo():
     def __init__(self,engine) -> None:

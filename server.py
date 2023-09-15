@@ -17,7 +17,7 @@ from werkzeug.utils import secure_filename
 from functools import wraps
 from utils import config
 
-from controllers import Explorer
+from controllers import Explorer,Register
 
 import os
 
@@ -108,9 +108,18 @@ def index():
 
 @app.route('/explore', methods=['GET','POST'])
 def explore():
-    
     explorer =  Explorer({**context, **{"profile_name": "pixie"}})
     return explorer.execute()
+
+@app.route('/register/<invitation_code>', methods=['GET','POST'])
+def register(invitation_code):
+    register = Register({**context, **{"invitation_code": invitation_code}})
+    return register.execute()
+
+@app.route('/register', methods=['GET','POST'])
+def register_no_invite():
+    register = Register({**context, **{"invitation_code": ""}})
+    return register.execute()
 
 @app.route('/reset/<name>', methods=['GET'])
 @simple_login_required

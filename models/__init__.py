@@ -39,6 +39,8 @@ class User(Base):
     password = sa.Column(sa.String(100), nullable=False)
     avatar = sa.Column(sa.String(100), nullable=False)
     description = sa.Column(sa.Text, nullable=True)
+    invitation_code = sa.Column(sa.String(100), nullable=True)
+    invitation_count = sa.Column(sa.Integer, nullable=False)
 
 class User_Profile_Rel(Base):
     __tablename__ = 'user_profile_rel'
