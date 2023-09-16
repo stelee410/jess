@@ -103,8 +103,11 @@ def index():
     username = session.get('username')
     profile_list = profile_repo.get_ordered_profile_list(username)
     profile_private_list = profile_repo.get_ordered_profile_private_list(username)
+    userDisplayName = session.get('displayName')
+    if userDisplayName is None or userDisplayName == "":
+        userDisplayName = username
     return render_template('index.html', profiles = profile_list,profiles_private=profile_private_list,\
-                           userDisplayName = session.get('displayName'))
+                           userDisplayName = userDisplayName)
 
 @app.route('/explore', methods=['GET','POST'])
 def explore():
