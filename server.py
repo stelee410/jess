@@ -88,13 +88,13 @@ class ProfileUpdateForm(FlaskForm):
     description = TextAreaField(label="描述", validators=[DataRequired(), Length(1, 2048)], render_kw={"rows":"25"})
     message = TextAreaField(label="消息", validators=[DataRequired()], render_kw={"rows":"30"})
 
-def load_bot(profile):
+def load_bot(profile,username, context):
     if profile.bot == 'LoveBot':
-        return LoveBot(profile.description,profile.message)
+        return LoveBot(profile.description,profile.message,context)
     elif profile.bot == 'GPT4Bot':
-        return GPT4Bot(profile.description,profile.message)
+        return GPT4Bot(profile.description,profile.message,context)
     else:
-        return OpenAIBot(profile.description,profile.message)
+        return OpenAIBot(profile.description,profile.message,context)
 
 
 @app.route('/', methods=['GET'])
@@ -147,8 +147,9 @@ def chat(name):
         uprRepo.add_user_profile_rel(username, profile.name)
     else:
         uprRepo.quick_update(username, profile.name)
+    botContext = {"username":username,"displayName":session.get("displayName")}
 
-    bot = load_bot(profile)
+    bot = load_bot(profile,username,botContext)
     repo = ChatHistoryRepo(engine,username)
     history = repo.get_chat_history_by_name(name)
     rank = 0 #TODO: this is going to update to meta data or prompt agent.

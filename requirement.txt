@@ -5,4 +5,6 @@ flask_sqlalchemy
 openai
 alembic
 pymysql
-cryptography
+crypto
+graphy
+Jinja2

@@ -1,8 +1,17 @@
 
 import openai
 import json
+import jinja2
+
+def render_string(str, **kwargs):
+    environment = jinja2.Environment()
+    template = environment.from_string(str)
+    return template.render(**kwargs)
+
 class OpenAIBot():
-    def __init__(self,initMsg,feeds) -> None:
+    def __init__(self,initMsg,feeds, context ={}) -> None: #context is the context of the conversation
+        initMsg = render_string(initMsg, **context)
+        feeds = render_string(feeds, **context)
         self.initContext=[{"role":"system","content":initMsg}]
         feedsArray = feeds.splitlines()
         if len(feedsArray)%2 == 0:
@@ -63,8 +72,8 @@ class ExplorerBot(OpenAIBot):
         return super().get_last_two_messages(message, history)
     
 class GPT4Bot(OpenAIBot):
-    def __init__(self,initMsg,feeds) -> None:
-        super().__init__(initMsg,feeds)
+    def __init__(self,initMsg,feeds, context) -> None:
+        super().__init__(initMsg,feeds,context)
         self.model = "gpt-4"
         self.temperature = 1.0
 
