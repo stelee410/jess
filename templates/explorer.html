@@ -72,7 +72,7 @@
     </div>
     {% endif %}
 </div>
-{% if rank >= 98 %}
+{% if action == 'login' %}
 <script>
     countdown("登录啦～",function(){
         window.location.href = '/login';

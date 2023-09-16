@@ -2,12 +2,18 @@ from .base import Base
 from forms import ChatForm
 from utils.model_repos import ProfileRepo
 from bot.chat import ExplorerBot
+from utils.model_repos import UserRepo
+from utils.password_hash import get_password_hash
+import re
+import json
+import logging
 
 
 class Explorer(Base):
     def execute(self):
         profile_name = self.context['profile_name']
         profile_repo = ProfileRepo(self.context['engine'])
+        user_repo = UserRepo(self.context['engine'])
         form = ChatForm()
         history = []
         rank = 0
@@ -16,14 +22,44 @@ class Explorer(Base):
         session = self.get_session()
 
         bot = ExplorerBot(profile.description, profile.message)
+        action = ''
+        params = ''
 
         if form.validate_on_submit():
             history = session.get('history', [])
             content = form.content.data
             my_msg,assistant_msg = bot.get_last_two_messages(content, history)
-            if assistant_msg['content'].find("【登录】") != -1:
-                rank = 100
-                assistant_msg['content'].replace("【登录】","")
+            content = assistant_msg['content']
+            print(content)
+            if content.find("/login") != -1:
+                action = 'login'
+                params = ''
+                assistant_msg['content'] = content.replace("/login","")
+            elif content.find("/register") != -1:
+                try:
+                    pattern = r'/register\s+(?P<arg>{.*?})'
+                    match = re.search(pattern, content)
+                    arg = match.group('arg')
+                    user_register_info = json.loads(arg)
+                    username = user_register_info.get('username')
+                    password = user_register_info.get('password')
+                    display_name = user_register_info.get('displayName')
+                    description = user_register_info.get('description')
+                    invitation_code = user_register_info.get('invitation_code')
+                    logging.info("Start to register for new user " + username)
+                    if user_repo.is_invitation_code_available(invitation_code) is False:
+                        assistant_msg['content'] = "邀请码错误。"
+                    elif user_repo.get_user_by_username(username) is not None:
+                        assistant_msg['content'] = "用户名已经存在。"
+                    else:
+                        password_hashed = get_password_hash(password, self.context['app'].secret_key)
+                        user_repo.insert_user(username, display_name, password_hashed, avatar,description)
+                        user_repo.decrease_invitation_count(invitation_code)
+                        assistant_msg['content'] = "注册成功了，现在可以登录了。登录进去后就可以在设置页面设置自己的头像，修改自己的资料。如果忘记密码，请添加'stephenliy'微信找客服。"
+                except Exception as error:
+                    logging.warning(error)
+                    assistant_msg['content'] = "注册失败了，请重新输入注册试试。"
+
             history.append(my_msg)
             history.append(assistant_msg)
             session['history'] = history
@@ -38,5 +74,5 @@ class Explorer(Base):
 
         return self.render('explorer.html', form=form, \
                            history=history,\
-                            history_len=len(history), rank=rank, \
+                            history_len=len(history), action=action, params=params,\
                             profile = profile, current_user_avatar = avatar)
