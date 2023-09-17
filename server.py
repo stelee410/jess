@@ -20,6 +20,7 @@ from utils import config
 from controllers import Explorer,Register
 
 import os
+import logging
 
 app = Flask(__name__)
 app.secret_key = config.secret_key
@@ -31,6 +32,7 @@ bootstrap = Bootstrap5(app)
 
 csrf = CSRFProtect(app)
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif'}
+logging.basicConfig(level=logging.INFO)
 
 def simple_login_required(f):
     @wraps(f)
