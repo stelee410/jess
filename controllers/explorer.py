@@ -8,6 +8,7 @@ from utils.password_hash import get_password_hash
 import re
 import json
 import logging
+import random
 
 
 class Explorer(Base):
@@ -40,12 +41,13 @@ class Explorer(Base):
                     # pattern = r'/register\s+(?P<arg>{.*?})'
                     # match = re.search(pattern, content)
                     # arg = match.group('arg')
-                    agent=Agent("register",['username','password','nickname','invitation_code'])
+                    agent=Agent("register",['username','invitation_code'])
                     arg = agent.getResponse(history+[my_msg,assistant_msg])
                     user_register_info = json.loads(arg)
                     username = user_register_info.get('username')
-                    password = user_register_info.get('password')
-                    display_name = user_register_info.get('nickname')
+                    random_number = random.randint(1000000000, 9999999999)
+                    password = f"{random_number}"
+                    display_name = user_register_info.get('username')
                     invitation_code = user_register_info.get('invitation_code')
                     logging.info("Start to register for new user " + username)
                     if user_repo.is_invitation_code_available(invitation_code) is False:
@@ -56,7 +58,7 @@ class Explorer(Base):
                         password_hashed = get_password_hash(password, self.context['app'].secret_key)
                         user_repo.insert_user(username, display_name, password_hashed, avatar)
                         user_repo.decrease_invitation_count(invitation_code)
-                        assistant_msg['content'] = "注册成功了，现在可以登录了。登录进去后别忘了在设置页面设置自己的头像，修改自己的资料。如果忘记密码，请添加'stephenliy'微信找客服。"
+                        assistant_msg['content'] = f"注册成功了，现在可以使用用户{username}, 密码 {password} 登录了。登录进去后别忘了在设置页面设置自己的头像，修改自己的资料。如果忘记密码，请添加'stephenliy'微信找客服。"
                 except Exception as error:
                     logging.warning(error)
                     logging.warning(arg)

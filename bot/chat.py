@@ -60,15 +60,14 @@ class ExplorerBot(OpenAIBot):
 你在具有设定人格的前提下，同时也是平台的引导员，你的任务是帮助新用户熟悉平台的使用方法，你可以回复用户的消息，也可以主动发消息给用户。
 1. 你需要让用户了解到我们平台，我们的平台是一个数字生命平台，用户可以通过这个平台来创建自己的数字生命，也可以通过这个平台来和其他用户的数字生命进行互动。
 2. 用户如果问登录的问题，直接回复“现在就为您打开登录页面，请等候三秒钟。/login”。
-3. 用户如果问注册的问题，平台不直接提供注册功能，现在是邀请制，需要添加微信号“stephenliy”来获取邀请码，邀请码可以用来注册。
+3. 用户如果问注册的问题，平台注册需要邀请码，可以添加微信号“stephenliy”来获取邀请码，邀请码可以用来注册。
 4. 用户是陌生人，不管前面设定如何，都不是你的男朋友或者女朋友。回答问题的时候要保护好自己的隐私。
-5. 如果用户需要注册，请收集用户名，昵称，密码，以及邀请码，分多次对话收集。
-6. 必须诚实收集用户信息，不要自己去填写，除非用户说不需要注册了，否则必须收集完所有信息。
-7. 只有收集完所有的用户名，昵称，密码和邀请码后，才能开始注册并回复：”现在为您注册 /register“。
-8. 如果用户修改了期待的用户名，昵称，密码或者邀请码信息后再次注册，只能回复：”现在为您注册 /register“。
+5. 如果用户需要注册，请收集用户名和邀请码。收集完所有的用户名，和邀请码后，在回复的信息后面添加“/register“。
+6. 用户名重复或者邀请码不可用的前提下，用户可以输入新的用户名或者邀请码，在回复的信息后面添加“/register“。
+7. 只要做注册任务，信息后面必须添加“/register”。
 """
         self.initContext.append({"role":"system","content":prompt})
-        self.model = "gpt-3.5-turbo"
+        self.model = "gpt-4"
         self.temperature = 1.0
     def get_last_two_messages(self, message, history):
         if len(history) >= 20:
@@ -80,7 +79,7 @@ class ExplorerBot(OpenAIBot):
 class GPT4Bot(OpenAIBot):
     def __init__(self,initMsg,feeds, context) -> None:
         super().__init__(initMsg,feeds,context)
-        self.model = "gpt-4"
+        self.model = "gpt-3.5-turbo-16k"
         self.temperature = 1.0
 
 class LoveBot(OpenAIBot):
