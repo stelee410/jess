@@ -174,7 +174,7 @@ class ProfileRepo():
             session.execute(stmt)
             session.commit()
         else:
-            profile = Profile(name=data['name'], displayName=data['displayName'], avatar=data['avatar'], bot=data['bot'], description=data['description'], message=data['message'], owned_by=owner, deleted=0, offline=0, scope = PROFILE_SCOPE_PUBLIC)
+            profile = Profile(name=data['name'], displayName=data['displayName'], avatar=data['avatar'], bot=data['bot'], description=data['description'], message=data['message'], owned_by=owner, deleted=0, offline=0, scope = PROFILE_SCOPE_PRIVATE)
             session.add(profile)
             session.commit()
 

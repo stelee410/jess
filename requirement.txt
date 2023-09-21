@@ -8,3 +8,4 @@ pymysql
 crypto
 graphy
 Jinja2
+flask-restful

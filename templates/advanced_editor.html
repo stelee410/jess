@@ -1,0 +1,282 @@
+{% extends 'layout.html' %}
+{% from 'bootstrap5/form.html' import render_form, render_field, render_form_row %}
+{% block content %}
+<style>
+    #mask {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 9999;
+      display: none;
+    }
+    #progress {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10000;
+      display: none;
+    }
+
+    #toolbar {
+        text-align: right;
+        padding-top: 6px;
+    }
+    .chat-item{
+        width: 100%;
+    }
+    .transparent {
+        opacity: 0.5;
+    }
+    .chat-textarea {
+        background-color: black;
+        color: white;
+    }
+    .chat-textarea-code{
+        background-color: orange;
+        color: red;
+        font-family: "Courier New", Courier, monospace;
+        font-weight: bold;
+    }
+    .chat-item {
+        margin-bottom: 10px;
+    }
+    #var {
+        font-size: small;
+    }
+</style>
+<div id="mask"></div>
+<div id="progress">
+    <div>Loading...</div>
+    <progress></progress>
+</div>
+
+
+<div class="container">
+    <div class="row">
+
+      <div class="col-md-4">
+        <h4>描述</h4>
+        <textarea class="form-control chat-textarea" rows="20" id="profile_description">{{profile.description}}</textarea>
+      </div>
+
+      <div class="col-md-6" id="chat-container">
+        <h4>模拟对话</h4>
+        {% for message in history %}
+        <div class="row chat-item">
+            <div class="col-md-1">
+                <div class="img_cont_msg">
+                    {% if message.role == 'user' %}
+                    <img src="{{ url_for('static', filename=user_avatar) }}"  class="rounded-circle user_img_msg" role="user" onclick="toggleRole(this)">
+                    {% elif message.role == 'assistant' %}
+                    <img src="{{ url_for('static', filename=profile.avatar) }}" class="rounded-circle user_img_msg" role="assistant" onclick="toggleRole(this)">
+                    {% else %}
+                    <span><i class="fa fa-code"></i></span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-10">
+                {%if message.role == 'code'%}
+                <textarea class="form-control msg chat-textarea-code" rows="1">{{message.content}}</textarea>
+                {%else%}
+                <textarea class="form-control msg chat-textarea" rows="1">{{message.content}}</textarea>
+                {%endif%}
+            </div>
+            <div class="col-md-1">
+                <span><i class="fa fa-trash transparent" onclick="deleteChat(this)"></i></span>
+            </div>
+        </div>
+        {% endfor %}
+        
+        <div id="toolbar">
+            <input type="button" class="btn btn-danger" value="测试" onclick="startChat()">
+            <input type="button" class="btn btn-primary" value="添加" onclick="addChat()">
+        </div>
+      </div>
+
+      <div class="col-md-2">
+        <h4>设置</h4>
+        <div class="mb-3">
+          <label for="model-select" class="form-label">选择模型</label>
+          <select class="form-select" id="model-select">
+            <option>选择bot
+            </option>
+            {% for model in model_list %}
+                {% if model == profile.bot %}
+                    <option value="{{model}}" selected>{{model}}</option>
+                {% else %}
+                    <option value="{{model}}">{{model}}</option>
+                {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+            <h4>变量(JSON格式)</h4>
+            <textarea class="form-control chat-textarea" rows="10" name="var" id="var"></textarea>
+        </div>
+      </div>
+</div>
+<script>
+function addChat(){
+    pre_role = $($(".chat-item").slice(-1)[0]).find('.img_cont_msg img').attr('role');
+    new_role = 'user'
+    if(pre_role == 'user'){
+        new_role = 'assistant'
+    }
+    addChatFromServer(new_role,"")
+}
+
+function addChatFromServer(role, content){
+    var new_chat = $(get_new_chat_str());
+    img = new_chat.find('.img_cont_msg img');
+    if (role =="user"){
+        img.attr('role', 'user');
+        img.attr('src', "{{ url_for('static', filename=user_avatar) }}");
+    }else{
+        img.attr('role', 'assistant');
+        img.attr('src', "{{ url_for('static', filename=profile.avatar) }}");
+    }
+    new_chat.find('textarea').text(content);
+    new_chat.insertBefore($('#toolbar'));
+    wrapInputTrigger(new_chat);
+
+    new_chat.find('textarea').each(function () {
+        this.style.height = 0;
+        this.style.height = (this.scrollHeight) + "px";
+    })
+}
+
+function getCurrentTextAreaRole($textarea){
+    return $textarea.parent().parent().find('.img_cont_msg img').attr('role');
+}
+
+function textareaOnKeyDown(event){
+    if (event.keyCode === 13 && !event.shiftKey) {
+            event.preventDefault();
+            var new_chat = $(get_new_chat_str());
+            img = new_chat.find('.img_cont_msg img');
+            current_chat_item = $(event.target).parent().parent();
+            current_img = current_chat_item.find('.img_cont_msg img')
+            current_role = current_img.attr('role');
+            new_role = "user"
+            if(current_role == 'user'){
+                new_role = 'assistant'
+            }
+            if (new_role =="user"){
+                img.attr('role', 'user');
+                img.attr('src', "{{ url_for('static', filename=user_avatar) }}");
+            }else{
+                img.attr('role', 'assistant');
+                img.attr('src', "{{ url_for('static', filename=profile.avatar) }}");
+            }
+            new_chat.insertAfter(current_chat_item);
+            wrapInputTrigger(new_chat)
+            new_chat.find('.chat-textarea').focus();
+            $("#chat-container textarea").each(function () {
+            this.style.height = 0;
+            this.style.height = (this.scrollHeight) + "px";
+    })
+    }
+}
+function toggleRole(target){
+    role = $(target).attr('role');
+    if (role =="user"){
+        $(target).attr('role', 'assistant');
+        $(target).attr('src', "{{ url_for('static', filename=profile.avatar) }}");
+    }else{
+        $(target).attr('role', 'user');
+        $(target).attr('src', "{{ url_for('static', filename=user_avatar) }}");
+    }
+}
+function deleteChat(target){
+    $(target).parent().parent().parent().remove();
+}
+function get_new_chat_str(){
+    return '\
+    <div class="row chat-item">\
+            <div class="col-md-1">\
+                <div class="img_cont_msg">\
+                    <img class="rounded-circle user_img_msg" onclick="toggleRole(this)">\
+                </div>\
+            </div>\
+            <div class="col-md-10">\
+                <textarea class="form-control msg chat-textarea" rows="1"></textarea>\
+            </div>\
+            <div class="col-md-1">\
+                <span><i class="fa fa-trash transparent" onclick="deleteChat(this)"></i></span>\
+            </div>\
+    </div>'
+}
+
+
+
+
+function detectCodeSnippet(event){
+    value = $(event.target).val();
+    if (value.indexOf('{{ '{%' }}')>=0){
+        $(event.target).removeClass('chat-textarea');
+        $(event.target).addClass('chat-textarea-code'); 
+        tmpRole = getCurrentTextAreaRole($(event.target));
+        $(event.target).parent().parent().find('.img_cont_msg').html('<span><i class="fa fa-code"></i></span>');
+    }
+}
+
+function wrapInputTrigger($obj){
+    $obj.on('keydown', textareaOnKeyDown);
+    $obj.on('input', detectCodeSnippet);
+}
+function startChat(){
+    description = $("#profile_description").val();
+    bot = $("#model-select").val();
+    var var_str = $("#var").val();
+    var chat_data = '';
+    chatItems = $("#chat-container").children();
+    for(var i = 1; i<chatItems.length-1; i++){
+        $item = $(chatItems[i]);
+        content = $item.find('textarea').val();
+        role = $item.find('.img_cont_msg img').attr('role')
+        if(role == undefined){
+            chat_data += content + "\n";
+        }else{
+            chat_data += JSON.stringify({"role": role, "content": content}) + ",\n";
+        }
+    }
+    data = {
+        description: description,
+        bot: bot,
+        var_str: var_str,
+        chat_data: chat_data
+    }
+    $.ajax({
+        url: '/api/chatdev',
+        type: 'POST',
+        data: data,
+        success: function(response){
+            message = response.message;
+            role = message.role;
+            content = message.content;
+            addChatFromServer(role, content);
+        },
+        error: function(err){
+            alert(err.responseText)
+        }
+    });
+}
+wrapInputTrigger($('.chat-textarea'));
+wrapInputTrigger($('.chat-textarea-code'));
+$("#chat-container textarea").each(function () {
+    this.style.height = 0;
+    this.style.height = (this.scrollHeight) + "px";
+})
+$(document).ajaxStart(function() {
+      $('#mask').show();
+      $('#progress').show();
+    }).ajaxStop(function() {
+      $('#mask').hide();
+      $('#progress').hide();
+    });
+</script>
+{% endblock %}

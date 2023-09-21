@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from enum import Enum
-from flask import Flask, render_template, request, flash, redirect, url_for, session
+from flask import Flask, render_template, request, flash, redirect, url_for, session,abort
 from markupsafe import Markup
 from flask_wtf import FlaskForm, CSRFProtect
 from wtforms.validators import DataRequired, Length, Regexp
@@ -8,7 +8,7 @@ from wtforms.fields import *
 from flask_bootstrap import Bootstrap5
 import time
 from datetime import datetime
-from bot.chat import LoveBot, OpenAIBot,GPT4Bot
+from bot.chat import LoveBot, OpenAIBot,GPT4Bot,ExplorerBot
 from utils.model_repos import ChatHistoryRepo,rebuild_history,ProfileRepo,UserRepo, UserProfileRelRepo,PROFILE_SCOPE_PUBLIC, PROFILE_SCOPE_PRIVATE
 from utils.password_hash import get_password_hash
 from sqlalchemy import create_engine
@@ -17,12 +17,16 @@ from werkzeug.utils import secure_filename
 from functools import wraps
 from utils import config
 
-from controllers import Explorer,Register
+from controllers import Explorer,Register,ProfileEditor
+
+from flask_restful import Api, Resource
 
 import os
 import logging
+import json
 
 app = Flask(__name__)
+api = Api(app)
 app.secret_key = config.secret_key
 engine = create_engine(config.connection_str,pool_size=1024, max_overflow=0)
 profile_repo = ProfileRepo(engine)
@@ -45,6 +49,7 @@ def simple_login_required(f):
 context = {
     "app": app,
     "engine": engine,
+    "profile_repo": profile_repo,
 }
 
 class UserForm(FlaskForm):
@@ -90,13 +95,23 @@ class ProfileUpdateForm(FlaskForm):
     description = TextAreaField(label="描述", validators=[DataRequired(), Length(1, 2048)], render_kw={"rows":"25"})
     message = TextAreaField(label="消息", validators=[DataRequired()], render_kw={"rows":"30"})
 
-def load_bot(profile,username, context):
+def load_bot(profile, context):
     if profile.bot == 'LoveBot':
         return LoveBot(profile.description,profile.message,context)
     elif profile.bot == 'GPT4Bot':
         return GPT4Bot(profile.description,profile.message,context)
     else:
         return OpenAIBot(profile.description,profile.message,context)
+def load_bot_by_name(botname, description, feeds, context):
+    if botname== 'LoveBot':
+        return LoveBot(description,feeds,context,"2.0")
+    elif botname == 'GPT4Bot':
+        return GPT4Bot(description,feeds,context,"2.0")
+    elif botname == 'ExplorerBot':
+        return ExplorerBot(description,feeds,"2.0")
+    else:
+        return OpenAIBot(description,feeds,context,"2.0")
+
 
 
 @app.route('/', methods=['GET'])
@@ -154,7 +169,7 @@ def chat(name):
         uprRepo.quick_update(username, profile.name)
     botContext = {"username":username,"displayName":session.get("displayName")}
 
-    bot = load_bot(profile,username,botContext)
+    bot = load_bot(profile,botContext)
     repo = ChatHistoryRepo(engine,username)
     history = repo.get_chat_history_by_name(name)
     rank = 0 #TODO: this is going to update to meta data or prompt agent.
@@ -203,6 +218,12 @@ def profile(name):
         form.description.data = profile.description
         form.message.data = profile.message
     return render_template("profile.html", name=name, form=form, profile=profile)
+
+@app.route('/profile/<name>/advanced_edit', methods=['GET','POST'])
+@simple_login_required
+def profile_advanced_edit(name):
+    profileEditor = ProfileEditor({**context, **{"profile_name": name}})
+    return profileEditor.execute()
 
 @app.route('/profile/:create', methods=['GET','POST'])
 @simple_login_required
@@ -357,5 +378,26 @@ def my():
         form.description.data = user.description
     return render_template('my.html', form = form)
 
+
+@app.route('/api/chatdev', methods=['POST'])
+@csrf.exempt
+@simple_login_required
+def chatdev():
+    description = request.form.get('description')
+    bot = request.form.get('bot')
+    var_str = request.form.get('var_str')
+    context = {}
+    try:
+        context = json.loads(var_str)
+    except:
+        logging.warning("var string cannot be parsed")
+    try:
+        chat_data = request.form.get('chat_data')
+        chatbot = load_bot_by_name(bot, description, chat_data, context)
+        message,__ = chatbot.getResponse()
+        return {'message':message}
+    except Exception as e:
+        logging.error(e)
+        abort (400, e.args)
 if __name__ == '__main__':
     app.run(debug=True, port=8080)

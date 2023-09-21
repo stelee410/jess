@@ -8,6 +8,8 @@ class Base():
         return render_template(template, **kwargs)
     def get_session(self):
         return session
+    def session_get(self,key):
+        return session.get(key)
     def redirect(self,path):
         return redirect(path)
     def flash(self, msg):
