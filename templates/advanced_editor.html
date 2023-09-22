@@ -119,10 +119,16 @@
         </div>
         <div class="mb-3">
             <h4>变量(JSON格式)</h4>
-            <textarea class="form-control chat-set-textarea" rows="10" name="var" id="var"></textarea>
+            <textarea class="form-control chat-set-textarea" rows="10" name="var" id="var">
+                {
+                    "username":"{{user_name}}",
+                    "displayName":"{{user_display_name}}"
+                }
+            </textarea>
         </div>
         <div class="mb-3">
             <input type="button" class="btn btn-info" value="保存" onclick="saveChat()">
+            <a  href="/profile/{{profile.name}}" class="btn btn-primary">返回</a>
         </div>
       </div>
 </div>

@@ -26,6 +26,7 @@ class ProfileEditor(Base):
         profile_name = self.context.get('profile_name')
 
         profile = profile_repo.get_profile_by_name(profile_name)
+        user_name = self.session_get('username')
         user_display_name = self.session_get('displayName')
         user_avatar = self.session_get('avatar')
         if profile is None:
@@ -54,6 +55,7 @@ class ProfileEditor(Base):
             history = get_history(message.splitlines())
         return self.render('advanced_editor.html',profile=profile,
                            history = history,
+                           user_name = user_name,
                            user_display_name = user_display_name,
                            user_avatar=user_avatar,
                             model_list=model_list)

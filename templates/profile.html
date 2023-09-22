@@ -8,6 +8,12 @@
             <img class="icon" src="{{ url_for('static', filename='images/return@2x.png') }}" alt="return-button"  ></button>
         </a>
         <div>Profile for {{profile.displayName}}</div>
+        <span id="action_menu_btn"><i class="fas fa-ellipsis-v"></i></span>
+        <div class="action_menu">
+            <ul>
+                <li><a class="nav-item nav-link" href="/profile/{{profile.name}}/advanced_edit"><i class="fas fa-edit"></i> 专业编辑器</a></li>
+            </ul>
+        </div>
     </div>
 
     <div id="profile-container" class="text-black">
