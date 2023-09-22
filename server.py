@@ -386,16 +386,49 @@ def chatdev():
     description = request.form.get('description')
     bot = request.form.get('bot')
     var_str = request.form.get('var_str')
+    profile_name = request.form.get('profile_name')
+    profile = profile_repo.get_profile_by_name(profile_name)
     context = {}
     try:
         context = json.loads(var_str)
     except:
         logging.warning("var string cannot be parsed")
     try:
+        profile = profile_repo.get_profile_by_name(profile_name)
+        if profile is None:
+            return abort(404, message=f"Profile {profile_name} not found")
+        if profile.owned_by != session.get('username'):
+            return abort(500, message=f"Profile {profile_name} not owned by {session.get('username')}")
+    
         chat_data = request.form.get('chat_data')
         chatbot = load_bot_by_name(bot, description, chat_data, context)
         message,__ = chatbot.getResponse()
         return {'message':message}
+    except Exception as e:
+        logging.error(e)
+        abort (400, e.args)
+
+@app.route('/api/savechatdev', methods=['POST'])
+@csrf.exempt
+@simple_login_required
+def save_chatdev():
+    description = request.form.get('description')
+    bot = request.form.get('bot')
+    chat_data = request.form.get('chat_data')
+    profile_name = request.form.get('profile_name')
+    try:
+        profile = profile_repo.get_profile_by_name(profile_name)
+        if profile is None:
+            return abort(404, message=f"Profile {profile_name} not found")
+        if profile.owned_by != session.get('username'):
+            return abort(500, message=f"Profile {profile_name} not owned by {session.get('username')}")
+        data = {
+            'bot': bot,
+            'description':description,
+            'message':'!#v2\n'+chat_data
+        }
+        profile_repo.update_profile(profile_name,data)
+        return {'message':'success'}
     except Exception as e:
         logging.error(e)
         abort (400, e.args)

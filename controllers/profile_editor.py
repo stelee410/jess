@@ -1,5 +1,6 @@
 from .base import Base
 import re
+import json
 
 def detect_jinja_tags(s):
     pattern = r'{%.*?%}'
@@ -32,8 +33,27 @@ class ProfileEditor(Base):
         if profile.owned_by != self.session_get('username'):
             return self.render("500.html", message=f"Profile {profile_name} not owned by {self.session_get('username')}")
         model_list = ['OpenAIBot','ExplorerBot','GPT4Bot','LoveBot']
+        message = profile.message
+        if message is None:
+            message = ""
+        history = []
+        if message.startswith("!#v2\n"):
+            feeds = message[5:]
+            feeds = feeds.split("\n")
+            for feed in feeds:
+                feed = feed.strip()
+                if feed=="":
+                    continue
+                if feed.endswith(','):
+                    feed = feed.strip(',')
+                try:
+                    history.append(json.loads(feed))
+                except:
+                    history.append({"role":"code","content":feed})             
+        else:
+            history = get_history(message.splitlines())
         return self.render('advanced_editor.html',profile=profile,
-                           history = get_history(profile.message.splitlines()),
+                           history = history,
                            user_display_name = user_display_name,
                            user_avatar=user_avatar,
                             model_list=model_list)

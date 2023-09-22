@@ -35,6 +35,10 @@
         background-color: black;
         color: white;
     }
+    .chat-set-textarea {
+        background-color: black;
+        color: white;
+    }
     .chat-textarea-code{
         background-color: orange;
         color: red;
@@ -60,7 +64,7 @@
 
       <div class="col-md-4">
         <h4>描述</h4>
-        <textarea class="form-control chat-textarea" rows="20" id="profile_description">{{profile.description}}</textarea>
+        <textarea class="form-control chat-set-textarea" rows="20" id="profile_description">{{profile.description}}</textarea>
       </div>
 
       <div class="col-md-6" id="chat-container">
@@ -115,7 +119,10 @@
         </div>
         <div class="mb-3">
             <h4>变量(JSON格式)</h4>
-            <textarea class="form-control chat-textarea" rows="10" name="var" id="var"></textarea>
+            <textarea class="form-control chat-set-textarea" rows="10" name="var" id="var"></textarea>
+        </div>
+        <div class="mb-3">
+            <input type="button" class="btn btn-info" value="保存" onclick="saveChat()">
         </div>
       </div>
 </div>
@@ -229,6 +236,42 @@ function wrapInputTrigger($obj){
     $obj.on('keydown', textareaOnKeyDown);
     $obj.on('input', detectCodeSnippet);
 }
+function saveChat(){
+    if(!confirm("当前设定将保存到服务器上，是否继续？")){
+        return;
+    }
+    description = $("#profile_description").val();
+    bot = $("#model-select").val();
+    var chat_data = '';
+    chatItems = $("#chat-container").children();
+    for(var i = 1; i<chatItems.length-1; i++){
+        $item = $(chatItems[i]);
+        content = $item.find('textarea').val();
+        role = $item.find('.img_cont_msg img').attr('role')
+        if(role == undefined){
+            chat_data += content + "\n";
+        }else{
+            chat_data += JSON.stringify({"role": role, "content": content}) + ",\n";
+        }
+    }
+    data = {
+        description: description,
+        bot: bot,
+        chat_data: chat_data,
+        profile_name: "{{profile.name}}",
+    }
+    $.ajax({
+        url: '/api/savechatdev',
+        type: 'POST',
+        data: data,
+        success: function(response){
+            alert("保存成功");
+        },
+        error: function(err){
+            alert(err.responseText);
+        }
+    });
+}
 function startChat(){
     description = $("#profile_description").val();
     bot = $("#model-select").val();
@@ -249,7 +292,8 @@ function startChat(){
         description: description,
         bot: bot,
         var_str: var_str,
-        chat_data: chat_data
+        chat_data: chat_data,
+        profile_name: "{{profile.name}}",
     }
     $.ajax({
         url: '/api/chatdev',

@@ -166,6 +166,14 @@ class ProfileRepo():
         )
         return query.all()
     
+    def update_profile(self, name,data):
+        session = Session(self.engine)
+        if 'name' in data: #omit the update of the name field
+            del data['name']
+        stmt = update(Profile).where(Profile.name == name).values(**data)
+        session.execute(stmt)
+        session.commit()
+    
     def add_or_update_profile(self, data, owner):
         session = Session(self.engine)
         existing_profile = self.get_profile_by_name(data['name'])
