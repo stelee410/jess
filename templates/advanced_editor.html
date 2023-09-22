@@ -141,7 +141,7 @@ function addChatFromServer(role, content){
     }
     new_chat.find('textarea').text(content);
     new_chat.insertBefore($('#toolbar'));
-    wrapInputTrigger(new_chat);
+    wrapInputTrigger(new_chat.find("textarea"));
 
     new_chat.find('textarea').each(function () {
         this.style.height = 0;
@@ -173,7 +173,7 @@ function textareaOnKeyDown(event){
                 img.attr('src', "{{ url_for('static', filename=profile.avatar) }}");
             }
             new_chat.insertAfter(current_chat_item);
-            wrapInputTrigger(new_chat)
+            wrapInputTrigger(new_chat.find("textarea"));
             new_chat.find('.chat-textarea').focus();
             $("#chat-container textarea").each(function () {
             this.style.height = 0;
@@ -222,6 +222,7 @@ function detectCodeSnippet(event){
         tmpRole = getCurrentTextAreaRole($(event.target));
         $(event.target).parent().parent().find('.img_cont_msg').html('<span><i class="fa fa-code"></i></span>');
     }
+    this.style.height = (this.scrollHeight) + 'px';
 }
 
 function wrapInputTrigger($obj){
