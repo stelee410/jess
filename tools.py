@@ -5,6 +5,23 @@ import random
 
 engine = create_engine(config.connection_str)
 
+def charge_user(admin):
+    user_repo = model_repos.UserRepo(engine)
+    balance_repo = model_repos.BalanceRepo(engine)
+
+    username = input("Enter the name: ")
+    user = user_repo.get_user_by_username(username)
+    if user is None:
+        print("user not found")
+        return
+    amount = input("Enter the amount: ")
+    amount = int(amount)
+    if amount != 0:
+        created_with = input("Enter the reason for re-charging or charging: ")
+        balance_repo.update_balance_by_user_id(user.id, amount, admin.id, created_with)
+    amount_total = balance_repo.get_balance_by_user_id(user.id)
+    print(f'balance updated, the total balance is {amount_total}')
+
 def create_user():
     username = input("Enter your name: ")
     password = input("Enter your password: ")
@@ -51,8 +68,16 @@ def create_invitation_code():
     
 
 if __name__ == '__main__':
+    admin_username = input("Enter your admin name: ")
+    user_repo = model_repos.UserRepo(engine)
+    admin = user_repo.get_user_by_username(admin_username)
+    if admin is None:
+        print("user not found")
+        exit()
     while True:
-        action = input("what do you want? create [u]ser | create [i]nvitation code |[r]eset password| [q]uit: ")
+        print("what do you want?")
+        print("create [u]ser | create [i]nvitation code |[r]eset password| [c]harge | [q]uit")
+        action = input(":")
         if action == "u":
             create_user()
         elif action == "i":
@@ -61,5 +86,7 @@ if __name__ == '__main__':
             break
         elif action == "r":
             reset_password()
+        elif action == "c":
+            charge_user(admin)
         else:
             print("invalid action")

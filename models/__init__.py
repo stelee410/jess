@@ -50,4 +50,13 @@ class User_Profile_Rel(Base):
     last_chat_at = sa.Column(sa.DateTime, nullable=False)
     number_of_chats = sa.Column(sa.Integer, nullable=False)
     relations = sa.Column(sa.Integer, nullable=False)  #0: stranger, 1: friends, 2: close friends
+
+class Balance(Base):
+    __tablename__ = 'balance'
+    id = sa.Column(sa.Integer, primary_key=True)
+    user_id = sa.Column(sa.Integer, sa.ForeignKey("user.id"))
+    balance = sa.Column(sa.Integer, default=0)
+    created_by = sa.Column(sa.Integer, sa.ForeignKey("user.id"))
+    created_at = sa.Column(sa.DateTime, default=sa.func.now())
+    created_with =  sa.Column(sa.String(128))
     

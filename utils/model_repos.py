@@ -1,9 +1,9 @@
 import json
 import datetime
-from models import ChatHistory, Profile,User,User_Profile_Rel
+from models import ChatHistory, Profile,User,User_Profile_Rel,Balance
 from models import SCOPE_PRIVATE,SCOPE_PUBLIC
 from sqlalchemy.orm import Session
-from sqlalchemy import select,delete,update,and_
+from sqlalchemy import select,delete,update,and_, func
 from sqlalchemy.orm import outerjoin
 import logging
 
@@ -254,4 +254,21 @@ class UserProfileRelRepo():
         session = Session(self.engine)
         stmt = update(User_Profile_Rel).where(User_Profile_Rel.username == username).where(User_Profile_Rel.profile_name == profilename).values(last_chat_at=datetime.datetime.now())
         session.execute(stmt)
+        session.commit()
+class BalanceRepo():
+    def __init__(self,engine) -> None:
+        self.engine = engine
+    def get_balance_by_user_id(self,user_id):
+        session = Session(self.engine)
+        stmt = select([func.sum(Balance.balance)]).where(Balance.user_id==user_id)
+        result = session.execute(stmt).scalars().first()
+        return result
+    def update_balance_by_user_id(self,user_id,amount, created_by, created_with):
+        session = Session(self.engine)
+        record = Balance(user_id=user_id,\
+                              balance=amount,\
+                                created_by=created_by,\
+                                created_with=created_with,\
+                                created_at=datetime.datetime.now())
+        session.add(record)
         session.commit()

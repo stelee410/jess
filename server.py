@@ -30,6 +30,7 @@ api = Api(app)
 app.secret_key = config.secret_key
 engine = create_engine(config.connection_str,pool_size=1024, max_overflow=0)
 profile_repo = ProfileRepo(engine)
+user_repo = UserRepo(engine)
 
 
 bootstrap = Bootstrap5(app)
@@ -95,22 +96,22 @@ class ProfileUpdateForm(FlaskForm):
     description = TextAreaField(label="描述", validators=[DataRequired(), Length(1, 2048)], render_kw={"rows":"25"})
     message = TextAreaField(label="消息", validators=[DataRequired()], render_kw={"rows":"30"})
 
-def load_bot(profile, context):
+def load_bot(profile, context, user_id):
     if profile.bot == 'LoveBot':
-        return LoveBot(profile.description,profile.message,context)
+        return LoveBot(profile.description,profile.message,user_id,context)
     elif profile.bot == 'GPT4Bot':
-        return GPT4Bot(profile.description,profile.message,context)
+        return GPT4Bot(profile.description,profile.message,user_id,context)
     else:
-        return OpenAIBot(profile.description,profile.message,context)
-def load_bot_by_name(botname, description, feeds, context):
+        return OpenAIBot(profile.description,profile.message,user_id,context)
+def load_bot_by_name(botname, description, feeds, context, user_id):
     if botname== 'LoveBot':
-        return LoveBot(description,feeds,context,"2.0")
+        return LoveBot(description,feeds,user_id,context,"2.0")
     elif botname == 'GPT4Bot':
-        return GPT4Bot(description,feeds,context,"2.0")
+        return GPT4Bot(description,feeds,user_id,context,"2.0")
     elif botname == 'ExplorerBot':
         return ExplorerBot(description,feeds,"2.0")
     else:
-        return OpenAIBot(description,feeds,context,"2.0")
+        return OpenAIBot(description,feeds,user_id, context,"2.0")
 
 
 
@@ -153,6 +154,8 @@ def reset(name):
 def chat(name):
     username = session.get('username')
     avatar = session.get('avatar')
+    user = user_repo.get_user_by_username(username)
+
     profile = profile_repo.get_profile_by_name(name)
     if profile is None:
         return render_template("404.html", message=f"Profile {name} not found")
@@ -169,7 +172,7 @@ def chat(name):
         uprRepo.quick_update(username, profile.name)
     botContext = {"username":username,"displayName":session.get("displayName")}
 
-    bot = load_bot(profile,botContext)
+    bot = load_bot(profile,botContext,user.id)
     repo = ChatHistoryRepo(engine,username)
     history = repo.get_chat_history_by_name(name)
     rank = 0 #TODO: this is going to update to meta data or prompt agent.
@@ -389,6 +392,8 @@ def chatdev():
     profile_name = request.form.get('profile_name')
     profile = profile_repo.get_profile_by_name(profile_name)
     context = {}
+    username = session.get('username')
+    user = user_repo.get_user_by_username(username)
     try:
         context = json.loads(var_str)
     except:
@@ -401,7 +406,7 @@ def chatdev():
             return abort(500, message=f"Profile {profile_name} not owned by {session.get('username')}")
     
         chat_data = request.form.get('chat_data')
-        chatbot = load_bot_by_name(bot, description, chat_data, context)
+        chatbot = load_bot_by_name(bot, description, chat_data, context, user.id)
         message,__ = chatbot.getResponse()
         return {'message':message}
     except Exception as e:
