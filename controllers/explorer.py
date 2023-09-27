@@ -22,7 +22,7 @@ class Explorer(Base):
         avatar = '/images/default.png'
         session = self.get_session()
 
-        bot = ExplorerBot(profile.description, profile.message)
+        bot = ExplorerBot(profile.description, profile.message,0)
         action = ''
         params = ''
 
