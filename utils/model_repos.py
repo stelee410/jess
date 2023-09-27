@@ -262,6 +262,15 @@ class BalanceRepo():
         if result is None:
             return 0
         return result
+    def has_user_balance_data(self,user_id):
+        session = Session(self.engine)
+        stmt = select(Balance).where(Balance.user_id==user_id)
+        result = session.execute(stmt).scalars().first()
+        if result is None:
+            return False
+        else:
+            return True
+
     def update_balance_by_user_id(self,user_id,amount, created_by, created_with):
         session = Session(self.engine)
         record = Balance(user_id=user_id,\

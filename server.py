@@ -101,6 +101,10 @@ def index():
     profile_list = profile_repo.get_ordered_profile_list(username)
     profile_private_list = profile_repo.get_ordered_profile_private_list(username)
     user = user_repo.get_user_by_username(username)
+    if balance_repo.has_user_balance_data(user.id) is False:
+        #init balance for new user
+        balance_repo.update_balance_by_user_id(user.id, config.initial_balance, 1, "init")
+
     balance = balance_repo.get_balance_by_user_id(user.id)
     userDisplayName = session.get('displayName')
     if userDisplayName is None or userDisplayName == "":
