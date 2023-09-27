@@ -174,15 +174,13 @@ class ProfileRepo():
         session.execute(stmt)
         session.commit()
     
-    def add_or_update_profile(self, data, owner):
+    def add(self, data, owner):
         session = Session(self.engine)
         existing_profile = self.get_profile_by_name(data['name'])
         if existing_profile is not None:
-            stmt = update(Profile).where(Profile.name == existing_profile.name).values(displayName=data['displayName'], avatar=data['avatar'], bot=data['bot'], description=data['description'], message=data['message'])
-            session.execute(stmt)
-            session.commit()
+            logging.warn(f"profile {data['name']} exists!")
         else:
-            profile = Profile(name=data['name'], displayName=data['displayName'], avatar=data['avatar'], bot=data['bot'], description=data['description'], message=data['message'], owned_by=owner, deleted=0, offline=0, scope = PROFILE_SCOPE_PRIVATE)
+            profile = Profile(name=data['name'], displayName=data['displayName'], avatar=data['avatar'], bot='SimpleBot', short_description = data["short_description"] ,description="", message="", owned_by=owner, deleted=0, offline=0, scope = PROFILE_SCOPE_PRIVATE)
             session.add(profile)
             session.commit()
 
@@ -262,6 +260,8 @@ class BalanceRepo():
         session = Session(self.engine)
         stmt = select([func.sum(Balance.balance)]).where(Balance.user_id==user_id)
         result = session.execute(stmt).scalars().first()
+        if result is None:
+            return 0
         return result
     def update_balance_by_user_id(self,user_id,amount, created_by, created_with):
         session = Session(self.engine)

@@ -24,6 +24,7 @@ class Profile(Base):
     displayName = sa.Column(sa.String(100), nullable=False)
     avatar = sa.Column(sa.String(100), nullable=False)
     bot = sa.Column(sa.String(100), nullable=False)
+    short_description = sa.Column(sa.Text, nullable=True)
     description = sa.Column(sa.Text, nullable=False)
     message = sa.Column(sa.Text, nullable=False)
     offline = sa.Column(sa.Integer, nullable=False)

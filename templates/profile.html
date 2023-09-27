@@ -11,14 +11,16 @@
         <span id="action_menu_btn"><i class="fas fa-ellipsis-v"></i></span>
         <div class="action_menu">
             <ul>
-                <li><a class="nav-item nav-link" href="/profile/{{profile.name}}/advanced_edit"><i class="fas fa-edit"></i> 专业编辑器</a></li>
+                <li><a class="nav-item nav-link" href="/profile/{{profile.name}}/advanced_edit"><i class="fas fa-edit"></i> 编辑会话</a></li>
             </ul>
         </div>
     </div>
 
     <div id="profile-container" class="text-black">
         {{render_form(form)}}
+        <a href="/profile/{{profile.name}}/advanced_edit">点击这里编辑对话和设定</a>
     </div>
+
     <div class="chat-input-container">
         <input type="submit" value="更新" class="btn btn-primary" onclick="$('form').submit()"/>&nbsp;&nbsp;&
         

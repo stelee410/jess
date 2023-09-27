@@ -226,3 +226,9 @@ margin-bottom: 15px !important;
 .send_btn{
     height: 100%;
 }
+
+.alert{
+    position: absolute;
+    width: 100%;
+    top: 0px;
+}

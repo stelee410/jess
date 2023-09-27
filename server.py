@@ -8,8 +8,9 @@ from wtforms.fields import *
 from flask_bootstrap import Bootstrap5
 import time
 from datetime import datetime
-from bot.chat import LoveBot, OpenAIBot,GPT4Bot,ExplorerBot
-from utils.model_repos import ChatHistoryRepo,rebuild_history,ProfileRepo,UserRepo, UserProfileRelRepo,PROFILE_SCOPE_PUBLIC, PROFILE_SCOPE_PRIVATE
+from bot.chat import InSufficientBalanceException
+from bot.load_bot import load_bot, load_bot_by_profile
+from utils.model_repos import ChatHistoryRepo,rebuild_history,ProfileRepo,UserRepo, UserProfileRelRepo,BalanceRepo,PROFILE_SCOPE_PUBLIC, PROFILE_SCOPE_PRIVATE
 from utils.password_hash import get_password_hash
 from sqlalchemy import create_engine
 from flask_wtf.file import FileRequired, FileAllowed, FileField
@@ -31,6 +32,7 @@ app.secret_key = config.secret_key
 engine = create_engine(config.connection_str,pool_size=1024, max_overflow=0)
 profile_repo = ProfileRepo(engine)
 user_repo = UserRepo(engine)
+balance_repo = BalanceRepo(engine)
 
 
 bootstrap = Bootstrap5(app)
@@ -84,35 +86,12 @@ class ProfileForm(FlaskForm):
     name = StringField(label="唯一数字人ID", validators=[DataRequired(), Length(1, 20)])
     displayName = StringField(label="姓名", validators=[DataRequired(), Length(1, 20)])
     avatar = FileField(label="头像", validators=[FileRequired(), FileAllowed(['jpg', 'png'], 'Images only!')])
-    #avatar = StringField(label="头像", validators=[DataRequired(), Length(1, 20)])
-    bot = StringField(label="机器人", validators=[DataRequired(), Length(1, 20)],default='OpenAIBot')
-    description = TextAreaField(label="描述", validators=[DataRequired(), Length(1, 2048)], render_kw={"rows":"25"})
-    message = TextAreaField(label="消息", validators=[DataRequired()], render_kw={"rows":"30"})
+    short_description = TextAreaField(label="描述（不影响设定）", validators=[Length(0, 2048)], render_kw={"rows":"8"})
 
 class ProfileUpdateForm(FlaskForm):
     displayName = StringField(label="昵称", validators=[DataRequired(), Length(1, 20)])
     avatar = FileField(label="头像", validators=[FileAllowed(['jpg', 'png'], 'Images only!')])
-    bot = StringField(label="机器人", validators=[DataRequired(), Length(1, 20)],default='OpenAIBot')
-    description = TextAreaField(label="描述", validators=[DataRequired(), Length(1, 2048)], render_kw={"rows":"25"})
-    message = TextAreaField(label="消息", validators=[DataRequired()], render_kw={"rows":"30"})
-
-def load_bot(profile, context, user_id):
-    if profile.bot == 'LoveBot':
-        return LoveBot(profile.description,profile.message,user_id,context)
-    elif profile.bot == 'GPT4Bot':
-        return GPT4Bot(profile.description,profile.message,user_id,context)
-    else:
-        return OpenAIBot(profile.description,profile.message,user_id,context)
-def load_bot_by_name(botname, description, feeds, context, user_id):
-    if botname== 'LoveBot':
-        return LoveBot(description,feeds,user_id,context,"2.0")
-    elif botname == 'GPT4Bot':
-        return GPT4Bot(description,feeds,user_id,context,"2.0")
-    elif botname == 'ExplorerBot':
-        return ExplorerBot(description,feeds,"2.0")
-    else:
-        return OpenAIBot(description,feeds,user_id, context,"2.0")
-
+    short_description = TextAreaField(label="描述（不影响设定）", validators=[Length(0, 2048)], render_kw={"rows":"8"})
 
 
 @app.route('/', methods=['GET'])
@@ -121,11 +100,13 @@ def index():
     username = session.get('username')
     profile_list = profile_repo.get_ordered_profile_list(username)
     profile_private_list = profile_repo.get_ordered_profile_private_list(username)
+    user = user_repo.get_user_by_username(username)
+    balance = balance_repo.get_balance_by_user_id(user.id)
     userDisplayName = session.get('displayName')
     if userDisplayName is None or userDisplayName == "":
         userDisplayName = username
     return render_template('index.html', profiles = profile_list,profiles_private=profile_private_list,\
-                           userDisplayName = userDisplayName)
+                           userDisplayName = userDisplayName,balance=balance)
 
 @app.route('/explore', methods=['GET','POST'])
 def explore():
@@ -172,20 +153,22 @@ def chat(name):
         uprRepo.quick_update(username, profile.name)
     botContext = {"username":username,"displayName":session.get("displayName")}
 
-    bot = load_bot(profile,botContext,user.id)
+    bot = load_bot_by_profile(profile,user.id, botContext)
     repo = ChatHistoryRepo(engine,username)
     history = repo.get_chat_history_by_name(name)
     rank = 0 #TODO: this is going to update to meta data or prompt agent.
     form = ChatForm()
     if form.validate_on_submit():
         content = form.content.data
-        response,history = bot.chat(content, history)
-        for record in history[-2:]:
-            repo.insert_message_to_chat_history(name, record)
-        if isinstance(response['content'], dict) and 'rank' in response['content']:
-            rank = response['content']['rank']
-        else:
-            rank = 0
+        try:
+            user_message, response = bot.chat(content, history)
+        except InSufficientBalanceException as e:
+            flash("余额不足，请充值")
+            return redirect(f"/chat/{name}")
+        repo.insert_message_to_chat_history(name, user_message)
+        repo.insert_message_to_chat_history(name, response)
+        history.append(user_message)
+        history.append(response)
         form.content.data = ''
     return render_template('chat.html', form=form, \
                            history=rebuild_history(history),\
@@ -203,6 +186,7 @@ def profile(name):
         return render_template("500.html", message=f"Profile {name} not owned by {session.get('username')}")
     if form.validate_on_submit():
         data = form.data
+        data_to_update={}
         if form.avatar.data:
             file = form.avatar.data
             filename = secure_filename(file.filename)
@@ -210,16 +194,15 @@ def profile(name):
             filename = f"{current_timestamp}_{filename}"
             if '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS:
                 file.save(os.path.join('./static/profiles', filename))
-                data['avatar'] = f"profiles/{filename}"
+                data_to_update['avatar'] = f"profiles/{filename}"
         else:
-            data['avatar'] = profile.avatar
-        data['name'] = name
-        profile_repo.add_or_update_profile(data,session.get('username'))
+            data_to_update['avatar'] = profile.avatar
+        data_to_update['displayName'] = data['displayName']
+        data_to_update['short_description'] = data['short_description']
+        profile_repo.update_profile(name, data_to_update)
     else:
         form.displayName.data = profile.displayName
-        form.bot.data = profile.bot
-        form.description.data = profile.description
-        form.message.data = profile.message
+        form.short_description.data = profile.short_description
     return render_template("profile.html", name=name, form=form, profile=profile)
 
 @app.route('/profile/<name>/advanced_edit', methods=['GET','POST'])
@@ -246,8 +229,8 @@ def new_profile():
             if '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS:
                 file.save(os.path.join('./static/profiles', filename))
                 data['avatar'] = f"profiles/{filename}"
-        profile_repo.add_or_update_profile(data,session.get('username'))
-        return redirect("/")
+        profile_repo.add(data,session.get('username'))
+        return redirect("/profile/"+data['name'])
     return render_template("new_profile.html", form=form)
 
 @app.route('/login', methods=['GET','POST'])
@@ -406,8 +389,8 @@ def chatdev():
             return abort(500, message=f"Profile {profile_name} not owned by {session.get('username')}")
     
         chat_data = request.form.get('chat_data')
-        chatbot = load_bot_by_name(bot, description, chat_data, context, user.id)
-        message,__ = chatbot.getResponse()
+        chatbot = load_bot(bot, description, chat_data, user.id, context)
+        message = chatbot.getResponse()
         return {'message':message}
     except Exception as e:
         logging.error(e)

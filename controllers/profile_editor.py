@@ -1,4 +1,5 @@
 from .base import Base
+from bot.load_bot import get_bots_list
 import re
 import json
 
@@ -33,7 +34,7 @@ class ProfileEditor(Base):
             return self.render("404.html", message=f"Profile {profile_name} not found")
         if profile.owned_by != self.session_get('username'):
             return self.render("500.html", message=f"Profile {profile_name} not owned by {self.session_get('username')}")
-        model_list = ['OpenAIBot','ExplorerBot','GPT4Bot','LoveBot']
+        model_list = get_bots_list()
         message = profile.message
         if message is None:
             message = ""

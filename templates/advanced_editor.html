@@ -2,6 +2,9 @@
 {% from 'bootstrap5/form.html' import render_form, render_field, render_form_row %}
 {% block content %}
 <style>
+    #main {
+        margin-top: 10px;
+    }
     #mask {
       position: fixed;
       top: 0;
@@ -51,6 +54,14 @@
     #var {
         font-size: small;
     }
+    #submenu-desc {
+        margin: auto;
+        text-align: left;
+    }
+    #submenu-item {
+        margin: auto;
+        text-align: left;
+    }
 </style>
 <div id="mask"></div>
 <div id="progress">
@@ -58,12 +69,32 @@
     <progress></progress>
 </div>
 
-
+<div class="container" id="submenu">
+    <div class="row">
+        <div class="col-md-1">
+            <div class="img_cont_msg">
+                <img src="{{ url_for('static', filename=profile.avatar) }}" class="rounded-circle user_img_msg"/>
+            </div>
+        </div>
+        <div class="col-md-2" id="submenu-desc">
+            {{profile.displayName}}
+        </div>
+        <div class="col-md-9" id="submenu-item">
+            |
+            <a  href="/" class="btn btn-primary">回到首页</a>&nbsp;
+            <a  href="/profile/{{profile.name}}" class="btn btn-secondary">返回</a>&nbsp;
+            <a  href="/chat/{{profile.name}}" class="btn btn-success">聊天</a>&nbsp;
+            <input type="button" class="btn btn-warning" value="保存" onclick="saveChat()">&nbsp;
+            
+            &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+            <input type="button" class="btn btn-danger" value="测试" onclick="startChat()">
+        </div>
+    </div>
+</div>
 <div class="container">
     <div class="row">
-
       <div class="col-md-4">
-        <h4>描述</h4>
+        <h4>设定</h4>
         <textarea class="form-control chat-set-textarea" rows="20" id="profile_description">{{profile.description}}</textarea>
       </div>
 
@@ -125,10 +156,6 @@
                     "displayName":"{{user_display_name}}"
                 }
             </textarea>
-        </div>
-        <div class="mb-3">
-            <input type="button" class="btn btn-info" value="保存" onclick="saveChat()">
-            <a  href="/profile/{{profile.name}}" class="btn btn-primary">返回</a>
         </div>
       </div>
 </div>
@@ -298,7 +325,7 @@ function startChat(){
         description: description,
         bot: bot,
         var_str: var_str,
-        chat_data: chat_data,
+        chat_data: "!#v2\n"+chat_data,
         profile_name: "{{profile.name}}",
     }
     $.ajax({
@@ -312,7 +339,11 @@ function startChat(){
             addChatFromServer(role, content);
         },
         error: function(err){
-            alert(err.responseText)
+            if(err.responseText.indexOf('balance is not enough')>=0){
+                alert("余额不足，请充值");
+            }else{
+                alert(err.responseText);
+            }
         }
     });
 }
