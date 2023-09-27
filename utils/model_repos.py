@@ -260,6 +260,7 @@ class BalanceRepo():
         session = Session(self.engine)
         stmt = select([func.sum(Balance.balance)]).where(Balance.user_id==user_id)
         result = session.execute(stmt).scalars().first()
+        print(stmt.compile(self.engine))
         if result is None:
             return 0
         return result
