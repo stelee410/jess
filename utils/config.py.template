@@ -1,4 +1,8 @@
 import os
 
+openai.api_key=''
+
+initial_balance = 100
+
 secret_key = ''
 connection_str = f""
