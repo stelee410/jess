@@ -151,7 +151,6 @@ class ProfileRepo():
             .filter(Profile.scope==SCOPE_PUBLIC)
             .order_by(User_Profile_Rel.last_chat_at.desc())
         )
-        print(query.statement)
         return query.all()
     
     def get_ordered_profile_private_list(self, owner):
@@ -258,10 +257,8 @@ class BalanceRepo():
         self.engine = engine
     def get_balance_by_user_id(self,user_id):
         session = Session(self.engine)
-        stmt = select([func.sum(Balance.balance)]).where(Balance.user_id==user_id)
+        stmt = select(func.sum(Balance.balance)).where(Balance.user_id==user_id)
         result = session.execute(stmt).scalars().first()
-        print("===============================================")
-        print(stmt.compile(self.engine))
         if result is None:
             return 0
         return result
