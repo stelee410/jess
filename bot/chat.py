@@ -40,6 +40,8 @@ class OpenAIBot():
         feeds, version = auto_detect_version2(feeds)
         initMsg = render_string(initMsg, **context)
         feeds = render_string(feeds, **context)
+        if self._get_pre_context() != "":
+            initMsg = self._get_pre_context()+"\n"+initMsg
         self.initContext=[{"role":"system","content":initMsg}]
         feedsArray = []
         if version=="2.0":
@@ -59,8 +61,6 @@ class OpenAIBot():
         self.model = self._get_model()
         self.temperature = self._get_temperature()
         self.user_id = user_id
-        if self._get_pre_context() != "":
-            self.initContext.append({"role":"system","content":self._get_pre_context()})
     
     def _get_model(self):
         return "gpt-3.5-turbo-16k"
@@ -104,15 +104,16 @@ class ExplorerBot(OpenAIBot):
 2. 用户如果问登录的问题，直接回复“现在就为您打开登录页面，请等候三秒钟。/login”。
 3. 用户如果问注册的问题，平台注册需要邀请码，可以添加微信号“stephenliy”来获取邀请码，邀请码可以用来注册。
 4. 用户是陌生人，不管前面设定如何，都不是你的男朋友或者女朋友。回答问题的时候要保护好自己的隐私。
-5. 如果用户需要注册，请收集用户名和邀请码。收集完所有的用户名，和邀请码后，在回复的信息后面添加“/register“。
-6. 用户名重复或者邀请码不可用的前提下，用户可以输入新的用户名或者邀请码，在回复的信息后面添加“/register“。
-7. 只要做注册任务，信息后面必须添加“/register”。
+5. 如果用户需要注册，请收集用户名和邀请码。只有收集完所有的用户名，和邀请码后，在回复的信息后面添加“/register“。
+6. 只要做注册任务，信息后面必须添加“/register”。
 """
         return prompt   
     def get_last_two_messages(self, message, history):
         if len(history) >= 20:
             return {"role":"user","content":message},{"role":"assistant","content":"你已经体验次数了哦，可以微信联系stephenliy 或者【登录】哈。"}
         return super().get_last_two_messages(message, history)
+    def _get_model(self):
+        return "gpt-4"
     def set_temperature(self,temperature):
         self.temperature = temperature
 
