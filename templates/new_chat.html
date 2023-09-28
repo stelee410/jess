@@ -1,0 +1,116 @@
+{% extends 'layout.html' %}
+{% from 'bootstrap5/form.html' import render_form, render_field, render_form_row %}
+{% block content %}
+<div id="container">
+<div id="chatbox">
+    <div id="banner">
+        <a href="/">
+            <img class="icon" src="{{ url_for('static', filename='images/return@2x.png') }}" alt="return-button"  ></button>
+        </a>
+        <div>{{profile.displayName}}</div>
+        <span id="action_menu_btn"><i class="fas fa-ellipsis-v"></i></span>
+        <div class="action_menu">
+            <ul>
+                {% if profile.owned_by == session.get('username') %}
+                <li><a class="nav-item nav-link" href="/profile/{{profile.name}}"><i class="fas fa-user-circle"></i>  View profile</a></li>
+                {% endif %}
+                <li><a class="nav-item nav-link" href="/reset/{{profile.name}}"><i class="fas fa-comment"></i>  New Chat </a></li>
+            </ul>
+        </div>
+
+    </div>
+
+    <div id="chat-container">
+        {% for item in history %}
+                {% if item.role == 'user' %}
+                    <div class="d-flex justify-content-end mb-4 user-message">
+                        <div class="msg_cotainer_send">
+                            {{ item.content}}
+                            <span class="msg_time_send"></span>
+                        </div>
+                        <div class="img_cont_msg">
+                            <img src="{{ url_for('static', filename=current_user_avatar) }}"  class="rounded-circle user_img_msg">
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="d-flex justify-content-start mb-4 other-message">
+                        <div class="img_cont_msg">
+                            <img src="{{ url_for('static', filename=profile.avatar) }}" class="rounded-circle user_img_msg">
+                        </div>
+                        <div class="msg_cotainer">
+                            {{ item.content }}
+                            <span class="msg_time"></span>
+                        </div>
+                    </div>
+                {% endif %}
+        {% endfor %}
+            <!-- Repeat chat messages as needed -->
+    </div>
+    {% if profile.offline == 0 %}
+    <form id="msgForm" class="chat-input-container" method="POST">
+            <textarea class="form-control type_msg" id="content" name="content"></textarea>
+            <span class="chat-send-button" onclick="sync()"><i class="fas fa-location-arrow"></i></span>
+    </form>
+    {% else %}
+    <div id="msgForm" class="chat-input-container text-black" method="POST">
+        用户已经下线，无法发送消息
+    </div>
+    {% endif %}
+</div>
+{% if rank >= 98 %}
+<script>
+    
+    showLove();
+</script>
+{% endif %}
+<script lang="javascript">
+    let current_user_avatar = "{{ url_for('static', filename=current_user_avatar) }}";
+    let assistant_avatar = "{{ url_for('static', filename=profile.avatar) }}";
+    function get_chat_item_user(content){
+        content_text = $("<div>").text(content).html();
+        return '\
+    <div class="d-flex justify-content-end mb-4 user-message">\
+                        <div class="msg_cotainer_send">'+ content_text +'\
+                            <span class="msg_time_send"></span>\
+                        </div>\
+                        <div class="img_cont_msg">\
+                            <img src="'+ current_user_avatar +'"  class="rounded-circle user_img_msg">\
+                        </div>\
+                    </div>'
+    }
+    function get_chat_item_assistant(content){
+        content_text = $("<div>").text(content).html();
+        return '\<div class="d-flex justify-content-start mb-4 other-message">\
+                        <div class="img_cont_msg">\
+                            <img src="'+ assistant_avatar +'" class="rounded-circle user_img_msg">\
+                        </div>\
+                        <div class="msg_cotainer">'+ content_text +'\
+                            <span class="msg_time"></span>\
+                        </div>\
+                    </div>'
+    }
+    $('#content').on('keydown', function(event) {
+        if (event.keyCode === 13 && !event.shiftKey) {
+            event.preventDefault();
+            sync();
+        }
+    });
+    function sync(){
+        user_input = $('#content').val();
+        if(user_input == ''){
+            return;
+        }
+        else{
+            $chatItem = $(get_chat_item_user(user_input));
+            $chatItem_assist = get_chat_item_assistant("正在思考中...");
+            $("#chat-container").append($chatItem);
+            setTimeout(() => {
+                $("#chat-container").append($chatItem_assist);
+            }, Math.floor(Math.random() * 2000) + 1000);
+            $("#content").val("");
+            $("#content").attr('disabled','true');
+        }
+    }
+</script>
+</div>
+{% endblock %}

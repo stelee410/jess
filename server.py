@@ -18,7 +18,7 @@ from werkzeug.utils import secure_filename
 from functools import wraps
 from utils import config
 
-from controllers import Explorer,Register,ProfileEditor
+from controllers import Explorer,Register,ProfileEditor,Chat
 
 from flask_restful import Api, Resource
 
@@ -133,6 +133,12 @@ def reset(name):
     repo = ChatHistoryRepo(engine,session.get('username'))
     repo.reset_chat_history(name)
     return redirect(f"/chat/{name}")
+
+@app.route('/chat2/<name>', methods=['GET'])
+@simple_login_required
+def new_chat(name):
+    chat = Chat({**context, **{"profile_name": name}})
+    return chat.execute()
 
 @app.route('/chat/<name>', methods=['GET','POST'])
 @simple_login_required
