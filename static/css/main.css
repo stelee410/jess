@@ -431,3 +431,6 @@ footer {
     width: 100%;
     top: 0px;
 }
+.chat_progress{
+    width: 32px;
+}

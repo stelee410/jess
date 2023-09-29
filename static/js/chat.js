@@ -75,3 +75,10 @@ $(document).ready(function(){
         resizeId = setTimeout(doneResizing, 500);
       });
 });
+function flash(message, alert_type) {
+    var alert_class = 'alert-' + alert_type;
+    var alert_html = '<div class="alert '+alert_class+' alert-dismissible fade show" role="alert">\
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'+message+'\
+                    </div>';
+    $('#main').append(alert_html);
+}

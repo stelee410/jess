@@ -14,7 +14,7 @@
                 {% if profile.owned_by == session.get('username') %}
                 <li><a class="nav-item nav-link" href="/profile/{{profile.name}}"><i class="fas fa-user-circle"></i>  View profile</a></li>
                 {% endif %}
-                <li><a class="nav-item nav-link" href="/reset/{{profile.name}}"><i class="fas fa-comment"></i>  New Chat </a></li>
+                <li><a class="nav-item nav-link" onclick="clearChatHistory()"><i class="fas fa-comment"></i>  New Chat </a></li>
             </ul>
         </div>
 
@@ -78,8 +78,13 @@
                         </div>\
                     </div>'
     }
-    function get_chat_item_assistant(content){
-        content_text = $("<div>").text(content).html();
+    function get_chat_item_assistant(content,isRaw){
+        if(isRaw){
+            content_text = content;
+        }else{
+            content_text = $("<div>").text(content).html();
+        }
+        
         return '\<div class="d-flex justify-content-start mb-4 other-message">\
                         <div class="img_cont_msg">\
                             <img src="'+ assistant_avatar +'" class="rounded-circle user_img_msg">\
@@ -89,12 +94,27 @@
                         </div>\
                     </div>'
     }
+    function add_progress_icon(){
+        $chatItem_assist = $(get_chat_item_assistant('<image class="chat_progress" src ="/static/images/chat_progress.gif"/>',true));
+        $chatItem_assist.attr('id','chat_progress');
+        $("#chat-container").append($chatItem_assist);
+        $("#chat-container")[0].scrollTop = $("#chat-container")[0].scrollHeight;
+
+    }
+    function remove_progress_icon(){
+        $("#chat_progress").remove();
+    }
     $('#content').on('keydown', function(event) {
         if (event.keyCode === 13 && !event.shiftKey) {
             event.preventDefault();
             sync();
         }
     });
+
+    function clear(){
+        $("#chat-container").empty();
+    }
+
     function sync(){
         user_input = $('#content').val();
         if(user_input == ''){
@@ -102,14 +122,59 @@
         }
         else{
             $chatItem = $(get_chat_item_user(user_input));
-            $chatItem_assist = get_chat_item_assistant("正在思考中...");
             $("#chat-container").append($chatItem);
-            setTimeout(() => {
-                $("#chat-container").append($chatItem_assist);
-            }, Math.floor(Math.random() * 2000) + 1000);
-            $("#content").val("");
-            $("#content").attr('disabled','true');
         }
+        data ={}
+        data['content'] =  user_input;
+        data['profile_name']= "{{profile.name}}";
+        $.ajax({
+            url: '/api/chat',
+            type: 'POST',
+            data: data,
+            success: function(response){
+                message = response.message;
+                if(message.role=='assistant'){
+                    $chatItem = $(get_chat_item_assistant(message.content));
+                }else{
+                    $chatItem = $(get_chat_item_user(message.content));
+                }
+                $("#chat-container").append($chatItem);
+                $("#chat-container")[0].scrollTop = $("#chat-container")[0].scrollHeight;
+                setTimeout(() => {
+                    $("#content").focus();
+                }, 100);
+                
+            },
+            error: function(err){
+                if(err.responseText.indexOf('balance is not enough')>=0){
+                    flash("余额不足，请充值","warning");
+                }else{
+                    alert(err.responseText);
+                }
+            }
+        });
+    }
+    $(document).ajaxStart(function() {
+      add_progress_icon();
+      $("#content").val("");
+      $("#content").attr('disabled','true');
+    }).ajaxStop(function() {
+      remove_progress_icon();
+      $("#content").removeAttr('disabled');
+    });
+    function clearChatHistory(){
+        url = "/reset/{{profile.name}}";
+        $.ajax({
+            url: url,
+            type: 'GET',
+            success: function(response){
+                $("#chat-container").html("");  
+                $(".action_menu").toggle();
+            },
+            error: function(err){
+                flash(err.responseText);
+            }
+        });
     }
 </script>
 </div>

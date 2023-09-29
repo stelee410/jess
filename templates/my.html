@@ -1,7 +1,28 @@
 {% extends 'layout.html' %}
 {% from 'bootstrap5/form.html' import render_form, render_field, render_form_row %}
 {% block content %}
+<style>
+    .form-control {
+        background-color: black;
+        color: wheat;
+    }
+    .form-control:focus {
+        background-color: black;
+        color: wheat;
+    }
+</style>
 <div class="login-form-container container">
     {{render_form(form)}}
 </div>
+<p>
+    <input class="btn btn-info btn-md single-btn" value = "保存" onclick="submit()"/>
+    </p>
+<p>
+<a href="/logout" class="btn btn-danger btn-md single-btn">登出</a>
+</p>
+<script lang="javascript">
+    function submit(){
+        $(".login-form-container form").submit();
+    }
+</script>
 {% endblock %}

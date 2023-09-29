@@ -18,7 +18,7 @@ from werkzeug.utils import secure_filename
 from functools import wraps
 from utils import config
 
-from controllers import Explorer,Register,ProfileEditor,Chat
+from controllers import Explorer,Register,ProfileEditor,Chat,NewChat
 
 from flask_restful import Api, Resource
 
@@ -62,7 +62,6 @@ class UserForm(FlaskForm):
     password = PasswordField(label="旧密码", validators=[Length(0, 20)])
     password_new = PasswordField(label="新密码", validators=[Length(0, 20)])
     password_new_confirm = PasswordField(label="确认密码", validators=[Length(0, 20)])
-    submit = SubmitField('保存',render_kw={"class":'single-btn',"style":'margin-left:0px'})
     
 
 class ChatForm(FlaskForm):
@@ -134,13 +133,13 @@ def reset(name):
     repo.reset_chat_history(name)
     return redirect(f"/chat/{name}")
 
-@app.route('/chat2/<name>', methods=['GET'])
+@app.route('/chat/<name>', methods=['GET'])
 @simple_login_required
 def new_chat(name):
     chat = Chat({**context, **{"profile_name": name}})
     return chat.execute()
 
-@app.route('/chat/<name>', methods=['GET','POST'])
+@app.route('/chat_legacy/<name>', methods=['GET','POST'])
 @simple_login_required
 def chat(name):
     username = session.get('username')
@@ -374,6 +373,12 @@ def my():
         form.description.data = user.description
     return render_template('my.html', form = form)
 
+@app.route('/api/chat', methods=['POST'])
+@csrf.exempt
+@simple_login_required
+def chat2():
+    new_chat = NewChat({**context, **{"form": request.form}})
+    return new_chat.execute()
 
 @app.route('/api/chatdev', methods=['POST'])
 @csrf.exempt
