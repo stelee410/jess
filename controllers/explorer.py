@@ -25,13 +25,13 @@ class Explorer(Base):
         bot = ExplorerBot(profile.description, profile.message,0)
         action = ''
         params = ''
-
         if form.validate_on_submit():
             history = session.get('history', [])
             content = form.content.data
             my_msg,assistant_msg = bot.get_last_two_messages(content, history)
             content = assistant_msg['content']
             arg = ""
+            showAds = False
             if content.find("/login") != -1:
                 action = 'login'
                 params = ''
@@ -47,6 +47,7 @@ class Explorer(Base):
             form.content.data = ''
 
         else:
+            showAds = True
             session['history'] =[]
             prompt = f"""
 你好，我是你的引导员，你可以通过跟我对话了解这个平台，试试问问怎么注册或者怎么登录吧～
@@ -54,6 +55,6 @@ class Explorer(Base):
             history = [{"role":"assistant","content":prompt}]
 
         return self.render('explorer.html', form=form, \
-                           history=history,\
+                           history=history,show_ads = showAds,\
                             history_len=len(history), action=action, params=params,\
                             profile = profile, current_user_avatar = avatar)

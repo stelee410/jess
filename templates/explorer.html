@@ -16,7 +16,18 @@
     }
 </style>
 <div id="container">
-<div id="chatbox">
+    {% if show_ads %}
+    <div id="ads" style="margin-top: -100px;">
+        <a onclick="tryMe()"><img src="/static/images/lcrt.gif" alt="ads" width="100%" height="100%"/></a>
+    </div>
+    {% endif %}
+
+    {% if show_ads %}
+    <div id="chatbox" style="display:none">
+    {% else %}
+    <div id="chatbox">    
+    {% endif %}
+
     <div id="banner">
         <a href="/">
             <div class="img_cont_msg">
@@ -93,6 +104,10 @@
             submitMsg();
         }
     });
+    function tryMe(){
+        $(chatbox).show();
+        $(ads).hide();
+    }
 </script>
 </div>
 {% endblock %}
