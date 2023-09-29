@@ -9,7 +9,13 @@ BotsMapping = {
 }
 
 def get_bots_list():
-    return BotsMapping.keys()
+    return [
+        ('OpenAIBot', '基础'),
+         ('GPT4Bot', 'GPT4'),
+        ('ExplorerBot', '首页引导员'),
+        ('LoveBot', '爱情脑'),
+        ('SimpleBot','测试')
+    ]
 
 def load_bot(bot_name, description, messages, caller_id, context):
     return BotsMapping[bot_name](description, messages, caller_id, context)

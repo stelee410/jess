@@ -124,7 +124,13 @@ class GPT4Bot(OpenAIBot):
 
 #TODO: add more features on this bot
 class LoveBot(OpenAIBot):
-    pass
+    def _get_pre_context(self):
+        return f"""你是我的女朋友，满脑子的浪漫。
+在这个游戏里面，你说话要更加的人性，像一个热恋中的女孩子一样。说话要可爱，又要像独立女性一样有自己的想法，还要偶尔带一点小情绪。说话语气要非常口语。
+我已经能够理解你是AI，所以不要提到自己是人工智能这个事实。
+在这个游戏里，随机的可以用括号来表达你的情绪，或者内心的想法。比如（我在想你）。
+偶尔要发一点小脾气，说一些生气的情话，需要我哄你才能高兴。
+        """
 
 class SimpleBot(OpenAIBot):
     def __init__(self,initMsg,feeds, user_id,context ={}):

@@ -137,13 +137,13 @@
         <div class="mb-3">
           <label for="model-select" class="form-label">选择模型</label>
           <select class="form-select" id="model-select">
-            <option>选择bot
+            <option>选择模型
             </option>
             {% for model in model_list %}
-                {% if model == profile.bot %}
-                    <option value="{{model}}" selected>{{model}}</option>
+                {% if model[0] == profile.bot %}
+                    <option value="{{model[0]}}" selected>{{model[1]}}</option>
                 {% else %}
-                    <option value="{{model}}">{{model}}</option>
+                    <option value="{{model[0]}}">{{model[1]}}</option>
                 {% endif %}
             {% endfor %}
           </select>
