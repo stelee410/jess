@@ -21,9 +21,13 @@
     </div>
     {% if userDisplayName %}
     <div id="user-container">
-        余额: {{balance}}
-        <a href="/my" class="text-white">设置</a>
-
+        余额: {{balance}} | 
+        {% if has_unread_msg %}
+        <a href="/messages" class="text-white"><i class="fa fa-envelope fa-pulse fa-fw" aria-hidden="true"></i></a>
+        {% else %}
+        <a href="/messages" class="text-white"><i class="fa fa-envelope fa-fw" aria-hidden="true"></i></a>
+        {% endif %}
+        <a href="/my" class="text-white"><i class="fa fa-cog fa-fw"></i></a>
     </div>
     {% endif %}
     <div id="main">

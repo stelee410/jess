@@ -1,9 +1,9 @@
 import json
 import datetime
-from models import ChatHistory, Profile,User,User_Profile_Rel,Balance
+from models import ChatHistory, Profile,User,User_Profile_Rel,Balance,Message
 from models import SCOPE_PRIVATE,SCOPE_PUBLIC
 from sqlalchemy.orm import Session
-from sqlalchemy import select,delete,update,and_, func
+from sqlalchemy import select,delete,update,and_, or_, func
 from sqlalchemy.orm import outerjoin
 import logging
 
@@ -279,4 +279,59 @@ class BalanceRepo():
                                 created_with=created_with,\
                                 created_at=datetime.datetime.now())
         session.add(record)
+        session.commit()
+
+class MessageRepo():
+    def __init__(self,engine) -> None:
+        self.engine = engine
+    def insert_message(self, from_user, to_user, title, message):
+        session = Session(self.engine)
+        message = Message(receiver=to_user, sender=from_user, title=title, message=message, status=Message.STATUS_UNREAD)
+        session.add(message)
+        session.commit()
+
+    def get_unread_message_list(self, username):
+        session = Session(self.engine)
+        stmt = select(Message)\
+            .where(Message.receiver==username)\
+            .where(Message.status == Message.STATUS_UNREAD)\
+            .order_by(Message.created_at.desc())
+        return session.execute(stmt).scalars().all()
+    
+    def get_message_list(self, username):
+        session = Session(self.engine)
+        stmt = select(Message)\
+            .where(Message.receiver==username)\
+            .where(or_(Message.status == Message.STATUS_UNREAD, Message.status == Message.STATUS_READ))\
+            .order_by(Message.created_at.desc())
+        return session.execute(stmt).scalars().all()
+    
+    def get_archived_message_list(self, username):
+        session = Session(self.engine)
+        stmt = select(Message)\
+            .where(Message.receiver==username)\
+            .where(Message.status == Message.STATUS_ARCHIVED)\
+            .order_by(Message.created_at.desc())
+        return session.execute(stmt).scalars().all()
+    
+    def get_message_by_id(self, message_id):
+        session = Session(self.engine)
+        stmt = select(Message).where(Message.id == message_id)
+        return session.execute(stmt).scalars().first()
+
+    def mark_read(self, message_id):
+        session = Session(self.engine)
+        stmt = update(Message).where(Message.id == message_id).values(status=Message.STATUS_READ, updated_at=datetime.datetime.now())
+        session.execute(stmt)
+        session.commit()
+
+    def mark_delete(self, message_id):
+        session = Session(self.engine)
+        stmt = update(Message).where(Message.id == message_id).values(status=Message.STATUS_DELETED, updated_at=datetime.datetime.now())
+        session.execute(stmt)
+        session.commit()
+    def mark_archive(self, message_id):
+        session = Session(self.engine)
+        stmt = update(Message).where(Message.id == message_id).values(status=Message.STATUS_ARCHIVED, updated_at=datetime.datetime.now())
+        session.execute(stmt)
         session.commit()

@@ -60,4 +60,21 @@ class Balance(Base):
     created_by = sa.Column(sa.Integer, sa.ForeignKey("user.id"))
     created_at = sa.Column(sa.DateTime, default=sa.func.now())
     created_with =  sa.Column(sa.String(128))
+
+class Message(Base):
+    __tablename__ = 'message'
+    STATUS_UNREAD = 0
+    STATUS_READ = 1
+    STATUS_DELETED = 2
+    STATUS_ARCHIVED = 3
+    
+    id = sa.Column(sa.Integer, primary_key=True)
+    receiver = sa.Column(sa.String(100), nullable=False)#username for receiver
+    sender = sa.Column(sa.String(100), nullable=False)#username for sender
+    title = sa.Column(sa.String(100), nullable=False)
+    message = sa.Column(sa.Text, nullable=True)
+    created_at = sa.Column(sa.DateTime, default=sa.func.now())
+    updated_at = sa.Column(sa.DateTime, default=sa.func.now())
+    status = sa.Column(sa.Integer, nullable=False, default=0)#0:unread,1:read,2:deleted,3:archived
+
     

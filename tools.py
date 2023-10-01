@@ -5,6 +5,19 @@ import random
 
 engine = create_engine(config.connection_str)
 
+def send_message(admin):
+    user_repo = model_repos.UserRepo(engine)
+    message_repo = model_repos.MessageRepo(engine)
+    username = input("Enter the receiver username: ")
+    user = user_repo.get_user_by_username(username)
+    if user is None:
+        print("user not found")
+        return
+    title = input("Enter the title: ")
+    message = input("Enter the message: ")
+    message_repo.insert_message(admin.username, user.username, title, message)
+    print("message sent!")
+
 def charge_user(admin):
     user_repo = model_repos.UserRepo(engine)
     balance_repo = model_repos.BalanceRepo(engine)
@@ -76,7 +89,7 @@ if __name__ == '__main__':
         exit()
     while True:
         print("what do you want?")
-        print("create [u]ser | create [i]nvitation code |[r]eset password| [c]harge | [q]uit")
+        print("create [u]ser | create [i]nvitation code |[r]eset password| [c]harge | [s]end message |[q]uit")
         action = input(":")
         if action == "u":
             create_user()
@@ -88,5 +101,7 @@ if __name__ == '__main__':
             reset_password()
         elif action == "c":
             charge_user(admin)
+        elif action == 's':
+            send_message(admin)
         else:
             print("invalid action")

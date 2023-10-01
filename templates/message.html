@@ -1,0 +1,45 @@
+{% extends 'layout.html' %}
+{% from 'bootstrap5/form.html' import render_form, render_field, render_form_row %}
+{% block content %}
+<style>
+    #main{
+        margin-top: 0px;
+    }
+    #submenu{
+        text-align: right;
+        padding-right: 20px;
+        color: wheat;
+    }
+    .container {
+        text-align: left;
+    }
+    a {
+        color:beige;
+        text-decoration: none;
+    }
+</style>
+<h4 id="submenu">消息中心</h4>
+<hr/>
+<div class="container">
+    <div class="row">
+        <div class="col-md-2">
+            <ul>
+                {% if unread_messages_num > 0 %}
+                <li><a href="/messages" style="font-weight: bold;">未读信息({{unread_messages_num}})</a></li>
+                {% else %}
+                <li><a href="/messages">未读信息({{unread_messages_num}})</a></li>
+                {% endif %}
+                <li><a href="/messages/all">所有信息</a></li>
+                <li><a href="/messages/archived">已存档信息</a></li>
+            </ul>
+        </div>
+        <div class="col-md-8" id="submenu-desc">
+            {% block msg_content %}{% endblock %}
+        </div>
+        <div class="col-md-2" id="submenu-item">
+            {% block msg_content_menu %}{% endblock %}
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'message.html' %}
+{% block msg_content %}
+<h4>{{message.title}}</h4>
+<div class="container">
+    {{message.message}}
+</div>
+{% endblock %}
+{% block msg_content_menu %}
+{% if message.status == 0 or  message.status == 1 %}
+<p><a href="/message/{{message.id}}/archive" class="btn btn-primary single-btn">存档</a></p>
+{% elif message.status == 3 %}
+<p><a href="/message/{{message.id}}/read" class="btn btn-primary single-btn">撤销存档</a></p>
+{% endif %}
+<p><a href="/message/{{message.id}}/delete" class="btn btn-danger single-btn">删除</a></p>
+{% endblock %}

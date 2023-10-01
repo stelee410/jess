@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 from bot.chat import InSufficientBalanceException
 from bot.load_bot import load_bot, load_bot_by_profile
-from utils.model_repos import ChatHistoryRepo,rebuild_history,ProfileRepo,UserRepo, UserProfileRelRepo,BalanceRepo,PROFILE_SCOPE_PUBLIC, PROFILE_SCOPE_PRIVATE
+from utils.model_repos import ChatHistoryRepo,rebuild_history,ProfileRepo,UserRepo, UserProfileRelRepo,BalanceRepo,MessageRepo,PROFILE_SCOPE_PUBLIC, PROFILE_SCOPE_PRIVATE
 from utils.password_hash import get_password_hash
 from sqlalchemy import create_engine
 from flask_wtf.file import FileRequired, FileAllowed, FileField
@@ -18,7 +18,7 @@ from werkzeug.utils import secure_filename
 from functools import wraps
 from utils import config
 
-from controllers import Explorer,Register,ProfileEditor,Chat,NewChat
+from controllers import Explorer,Register,ProfileEditor,Chat,NewChat,Messenger
 
 from flask_restful import Api, Resource
 
@@ -33,6 +33,7 @@ engine = create_engine(config.connection_str,pool_size=1024, max_overflow=0)
 profile_repo = ProfileRepo(engine)
 user_repo = UserRepo(engine)
 balance_repo = BalanceRepo(engine)
+message_repo = MessageRepo(engine)
 
 
 bootstrap = Bootstrap5(app)
@@ -106,10 +107,14 @@ def index():
 
     balance = balance_repo.get_balance_by_user_id(user.id)
     userDisplayName = session.get('displayName')
+    unread_message_list = message_repo.get_unread_message_list(username)
+    has_unread_msg = True
+    if unread_message_list is  None or len(unread_message_list) == 0:
+        has_unread_msg = False
     if userDisplayName is None or userDisplayName == "":
         userDisplayName = username
     return render_template('index.html', profiles = profile_list,profiles_private=profile_private_list,\
-                           userDisplayName = userDisplayName,balance=balance)
+                           userDisplayName = userDisplayName,balance=balance,has_unread_msg = has_unread_msg)
 
 @app.route('/explore', methods=['GET','POST'])
 def explore():
@@ -330,6 +335,42 @@ def set_profile_scope(name, scope_str):
         return render_template("500.html", message=f"Profile {name} not owned by {session.get('username')}")
     profile_repo.set_profile_scope(name,scope)
     return redirect(f"/profile/{name}")
+
+@app.route('/messages', methods=['GET'])
+@simple_login_required
+def message():
+    messenger = Messenger({**context,**{'scope':'unread'}})
+    return messenger.execute()
+
+@app.route('/messages/<scope>', methods=['GET'])
+@simple_login_required
+def message_with_scope(scope):
+    messenger = Messenger({**context,**{'scope':scope}})
+    return messenger.execute()
+
+@app.route('/message/<id>', methods=['GET'])
+@simple_login_required
+def show_message(id):
+    messenger = Messenger({**context,**{'id':id}})
+    return messenger.show_message()
+
+@app.route('/message/<id>/archive', methods=['GET'])
+@simple_login_required
+def mark_archive(id):
+    messenger = Messenger({**context,**{'id':id}})
+    return messenger.mark_archive()
+
+@app.route('/message/<id>/read', methods=['GET'])
+@simple_login_required
+def mark_read(id):
+    messenger = Messenger({**context,**{'id':id}})
+    return messenger.mark_read()
+
+@app.route('/message/<id>/delete', methods=['GET'])
+@simple_login_required
+def mark_delete(id):
+    messenger = Messenger({**context,**{'id':id}})
+    return messenger.mark_delete()
 
 @app.route('/my', methods=['GET','POST'])
 @simple_login_required

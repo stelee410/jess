@@ -1,0 +1,27 @@
+{% extends 'message.html' %}
+{% block msg_content %}
+<table class="table table-dark">
+    <thead>
+        <tr>
+        <th>#</th>
+        <th>来自</th>
+        <th>发送时间</th>
+        <th>标题</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for message in messages %}
+            {% if message.status == 0 %}
+                <tr style="font-weight: bold;">
+            {% else %}
+                <tr>
+            {% endif %}
+            <td>{{loop.index}}</td>
+            <td>{{message.sender}}</td>
+            <td>{{message.created_at}}</td>
+            <td><a href="/message/{{message.id}}">{{message.title}}</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+ </table>
+{% endblock %}

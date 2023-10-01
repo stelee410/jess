@@ -149,7 +149,7 @@
                 if(err.responseText.indexOf('balance is not enough')>=0){
                     flash("余额不足，请充值","warning");
                 }else{
-                    alert(err.responseText);
+                    flash("服务器开小差了，请重试，或者刷新页面","warning");
                 }
             }
         });
