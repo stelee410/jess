@@ -15,9 +15,9 @@ def _get_chat_history(from_, from_displayName, profile_name, profile_displayName
     history = history if history is not None else []
     ret = []
     for chat in history:
-        role = profile_displayName
+        role = from_displayName
         if chat['role'] == 'assistant':
-           role = from_displayName
+           role = profile_displayName
         ret.append({
             "role": role,
             "content": chat['content'],
