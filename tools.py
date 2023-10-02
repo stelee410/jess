@@ -2,8 +2,21 @@
 from utils import config, model_repos, password_hash
 from sqlalchemy import create_engine
 import random
+from services import message as message_service
+from services import chat as chat_service
 
 engine = create_engine(config.connection_str)
+
+def forward_chat_history(admin):
+    inbox = input("Enter the msg inbox: ")
+    from_ = input("Enter the sender username: ")
+    profile_name = input("Enter the profile name: ")
+    profile = model_repos.ProfileRepo(engine).get_profile_by_name(profile_name)
+    owner_username = profile.owned_by
+    message = chat_service.format_out_chat_history(from_, owner_username, profile_name)
+    message_service.send(admin.username, inbox, "你有分享的聊天记录", message)
+    print("chat history forwarded")
+
 
 def send_message(admin):
     user_repo = model_repos.UserRepo(engine)
@@ -15,7 +28,7 @@ def send_message(admin):
         return
     title = input("Enter the title: ")
     message = input("Enter the message: ")
-    message_repo.insert_message(admin.username, user.username, title, message)
+    message_service.send(admin.username, user.username, title, message)
     print("message sent!")
 
 def charge_user(admin):
@@ -89,7 +102,8 @@ if __name__ == '__main__':
         exit()
     while True:
         print("what do you want?")
-        print("create [u]ser | create [i]nvitation code |[r]eset password| [c]harge | [s]end message |[q]uit")
+        print("create [u]ser | create [i]nvitation code |[r]eset password")
+        print("[c]harge | [s]end message | [f]foward the chat history | [q]uit")
         action = input(":")
         if action == "u":
             create_user()
@@ -103,5 +117,7 @@ if __name__ == '__main__':
             charge_user(admin)
         elif action == 's':
             send_message(admin)
+        elif action == 'f':
+            forward_chat_history(admin)
         else:
             print("invalid action")

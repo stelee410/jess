@@ -20,12 +20,11 @@ body {
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
-    margin-top: 50px;
     padding-left: 30px;
     padding-right: 30px;
 }
 #main{
-    margin-top: 100px;
+    margin-top: 0px;
 }
 .box {
     position: relative;
@@ -148,7 +147,7 @@ body {
     height: 700px;
     background-color:#F3F3FB;
     position: relative;
-    top: -80px;
+    top: 10px;
     margin:auto;
     padding: 20px;
     box-sizing: border-box;
@@ -345,6 +344,7 @@ footer {
     top: 30px;
     right: 15px;
     display: none;
+    text-align: left
     }
     .action_menu ul{
     list-style: none;
@@ -381,7 +381,6 @@ footer {
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    margin-top: 60px;
     width: 100%;
 }
 
@@ -433,4 +432,10 @@ footer {
 }
 .chat_progress{
     width: 32px;
+}
+
+#subheader{
+    text-align: right;
+    padding-right: 20px;
+    color: wheat;
 }

@@ -1,7 +1,7 @@
 {% extends 'layout.html' %}
 {% from 'bootstrap5/form.html' import render_form, render_field, render_form_row %}
 {% block content %}
-    <div id="container">
+    <div id="container" style="margin-top: 30px;">
         {% for profile in profiles %}
         <div class="box">
             <a href='/chat/{{profile["name"]}}'>

@@ -12,9 +12,10 @@
         <div class="action_menu">
             <ul>
                 {% if profile.owned_by == session.get('username') %}
-                <li><a class="nav-item nav-link" href="/profile/{{profile.name}}"><i class="fas fa-user-circle"></i>  View profile</a></li>
+                <li><a class="nav-item nav-link" href="/profile/{{profile.name}}"><i class="fas fa-user-circle"></i>  查看Profile</a></li>
                 {% endif %}
-                <li><a class="nav-item nav-link" onclick="clearChatHistory()"><i class="fas fa-comment"></i>  New Chat </a></li>
+                <li><a class="nav-item nav-link" onclick="clearChatHistory()"><i class="fas fa-comment"></i>  新建聊天 </a></li>
+                <li><a class="nav-item nav-link" onclick="shareChatHistory()"><i class="fas fa-share"></i>  与数字伴侣共享 </a></li>
             </ul>
         </div>
 
@@ -173,6 +174,22 @@
             },
             error: function(err){
                 flash(err.responseText);
+                $(".action_menu").toggle();
+            }
+        });
+    }
+    function shareChatHistory(){
+        url = "/share/{{profile.name}}";
+        $.ajax({
+            url: url,
+            type: 'GET',
+            success: function(response){
+                flash("已经成功分享给数字伴侣",'primary');
+                $(".action_menu").toggle();
+            },
+            error: function(err){
+                flash("服务器开小差啦，请重试",'warning');
+                $(".action_menu").toggle();
             }
         });
     }

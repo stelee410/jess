@@ -47,12 +47,15 @@ class Messenger(Base):
         message_repo = model_repos.MessageRepo(engine)
         message_id = self.context.get('id')
         message = message_repo.get_message_by_id(message_id)
+        line_data = []
         if message is None:
             return self.redirect('/messages')
+        else:
+            line_data = message.message.splitlines()
         if message.status == 0:
             message_repo.mark_read(message_id)
         unread_messages = getListNoneToEmpty(message_repo.get_unread_message_list(username))
-        return self.render('message_content.html',unread_messages_num=len(unread_messages),message=message)
+        return self.render('message_content.html',unread_messages_num=len(unread_messages),message=message, line_data=line_data)
     
     def execute(self):
         engine = self.context.get('engine')

@@ -31,12 +31,15 @@ class ChatHistoryRepo():
         self.engine = engine
         self.username = username
 
-    def get_chat_history_by_name(self,name):
+    def get_chat_history_by_name(self,name,attache_time=False):
         session = Session(self.engine)
         stmt = select(ChatHistory).where(ChatHistory.username == self.username).where(ChatHistory.name == name)
         chat_history = []
         for chat in  session.execute(stmt).scalars():
-            chat_history.append(json.loads(chat.message))
+            item = json.loads(chat.message)
+            if attache_time:
+                item['created_at'] = chat.created_at
+            chat_history.append(item)
         return chat_history
     
     def insert_message_to_chat_history(self, name, message):

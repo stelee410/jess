@@ -2,9 +2,6 @@
 {% from 'bootstrap5/form.html' import render_form, render_field, render_form_row %}
 {% block content %}
 <style>
-    #main {
-        margin-top: 10px;
-    }
     #mask {
       position: fixed;
       top: 0;
@@ -69,6 +66,8 @@
     <progress></progress>
 </div>
 
+<h4 id="subheader">编辑设定和会话</h4>
+<hr/>
 <div class="container" id="submenu">
     <div class="row">
         <div class="col-md-1">
@@ -148,7 +147,7 @@
             {% endfor %}
           </select>
         </div>
-        <div class="mb-3">
+        <div class="mb-3" style="display:none" id="var_panel">
             <h4>变量(JSON格式)</h4>
             <textarea class="form-control chat-set-textarea" rows="10" name="var" id="var">
                 {
@@ -360,5 +359,9 @@ $(document).ajaxStart(function() {
       $('#mask').hide();
       $('#progress').hide();
     });
+
+if(location.search=="?advanced"){
+    $("#var_panel").show();
+}
 </script>
 {% endblock %}

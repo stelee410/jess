@@ -2,7 +2,9 @@
 {% block msg_content %}
 <h4>{{message.title}}</h4>
 <div class="container">
-    {{message.message}}
+    {% for line in line_data %}
+    {{line}}<br/>
+    {% endfor %}
 </div>
 {% endblock %}
 {% block msg_content_menu %}

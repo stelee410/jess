@@ -10,13 +10,13 @@
         background-color: black;
         color: wheat;
     }
+    a {
+        color: orange;
+    }
 </style>
+<h4 id="subheader">注册 / <a href="login">登录</a></h4>
+<hr/>
 <div class="login-form-container container">
     {{render_form(form)}}
 </div>
-<style>
-#main {
-    margin-top: -42px;
-}
-</style>
 {% endblock %}

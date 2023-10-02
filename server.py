@@ -17,6 +17,9 @@ from flask_wtf.file import FileRequired, FileAllowed, FileField
 from werkzeug.utils import secure_filename
 from functools import wraps
 from utils import config
+import context as ctx
+import services.chat as chat_service
+import services.message as message_service
 
 from controllers import Explorer,Register,ProfileEditor,Chat,NewChat,Messenger
 
@@ -29,17 +32,17 @@ import json
 app = Flask(__name__)
 api = Api(app)
 app.secret_key = config.secret_key
-engine = create_engine(config.connection_str,pool_size=1024, max_overflow=0)
-profile_repo = ProfileRepo(engine)
-user_repo = UserRepo(engine)
-balance_repo = BalanceRepo(engine)
-message_repo = MessageRepo(engine)
+engine = ctx.engine
+profile_repo = ctx.profile_repo
+user_repo = ctx.user_repo
+balance_repo = ctx.balance_repo
+message_repo = ctx.message_repo
 
 
 bootstrap = Bootstrap5(app)
 
 csrf = CSRFProtect(app)
-ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif'}
+ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif','JPG', 'JPEG', 'PNG', 'GIF','webp','WEBP'}
 logging.basicConfig(level=logging.INFO)
 
 def simple_login_required(f):
@@ -136,6 +139,16 @@ def register_no_invite():
 def reset(name):
     repo = ChatHistoryRepo(engine,session.get('username'))
     repo.reset_chat_history(name)
+    return redirect(f"/chat/{name}")
+
+@app.route('/share/<name>', methods=['GET'])
+@simple_login_required
+def share(name):
+    from_ = session.get('username')
+    profile = profile_repo.get_profile_by_name(name)
+    to_ = profile.owned_by
+    message = chat_service.format_out_chat_history(from_, to_, name)
+    message_service.send(from_, to_, "你有分享的聊天记录", message)
     return redirect(f"/chat/{name}")
 
 @app.route('/chat/<name>', methods=['GET'])
