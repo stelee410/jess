@@ -89,12 +89,12 @@ class ProfileForm(FlaskForm):
     name = StringField(label="唯一数字人ID", validators=[DataRequired(), Length(1, 20)])
     displayName = StringField(label="姓名", validators=[DataRequired(), Length(1, 20)])
     avatar = FileField(label="头像", validators=[FileRequired(), FileAllowed(['jpg', 'png'], 'Images only!')])
-    short_description = TextAreaField(label="描述（不影响设定）", validators=[Length(0, 2048)], render_kw={"rows":"8"})
+    short_description = TextAreaField(label="描述（不影响设定）", validators=[Length(0, 2048)], render_kw={"rows":"6"})
 
 class ProfileUpdateForm(FlaskForm):
     displayName = StringField(label="昵称", validators=[DataRequired(), Length(1, 20)])
     avatar = FileField(label="头像", validators=[FileAllowed(['jpg', 'png'], 'Images only!')])
-    short_description = TextAreaField(label="描述（不影响设定）", validators=[Length(0, 2048)], render_kw={"rows":"8"})
+    short_description = TextAreaField(label="描述（不影响设定）", validators=[Length(0, 2048)], render_kw={"rows":"6"})
 
 
 @app.route('/', methods=['GET'])
