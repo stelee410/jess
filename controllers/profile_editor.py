@@ -2,6 +2,8 @@ from .base import Base
 from bot.load_bot import get_bots_list
 import re
 import json
+from context import *
+from utils import simple_login_required
 
 def detect_jinja_tags(s):
     pattern = r'{%.*?%}'
@@ -21,11 +23,13 @@ def get_history(feeds):
                 role = 'user'
     return history
 
-class ProfileEditor(Base):
-    def execute(self):
-        profile_repo = self.context.get('profile_repo')
-        profile_name = self.context.get('profile_name')
+@app.route('/profile/<name>/advanced_edit', methods=['GET'])
+@simple_login_required
+def profile_advanced_edit(name):
+    return  ProfileEditor().execute(name)
 
+class ProfileEditor(Base):
+    def execute(self, profile_name):
         profile = profile_repo.get_profile_by_name(profile_name)
         user_name = self.session_get('username')
         user_display_name = self.session_get('displayName')

@@ -1,0 +1,1 @@
+from .decorators import simple_login_required

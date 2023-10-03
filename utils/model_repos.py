@@ -26,6 +26,41 @@ def rebuild_history(history):
     #         new_history.append({"role":"assistant","content":content_string})
     # return new_history
 
+class ChatHistoryRepo2():
+    def __init__(self,engine) -> None:
+        self.engine = engine
+    def get_chat_history_by_name(self,username, name,attache_time=False):
+        session = Session(self.engine)
+        stmt = select(ChatHistory).where(ChatHistory.username == username).where(ChatHistory.name == name)
+        chat_history = []
+        for chat in  session.execute(stmt).scalars():
+            item = json.loads(chat.message)
+            if attache_time:
+                item['created_at'] = chat.created_at
+            chat_history.append(item)
+        return chat_history
+        
+    def insert_message_to_chat_history(self, username, name, message):
+        if isinstance(message, dict):
+             message = json.dumps(message)
+        else:
+            message = str(message)
+        chatHistory = ChatHistory(username=username, name=name, message=str(message), created_at=datetime.datetime.now())
+        session = Session(self.engine)
+        session.add(chatHistory)
+        session.commit()
+
+    def reset_chat_history(self, username, name):
+        session = Session(self.engine)
+        stmt = delete(ChatHistory).where(ChatHistory.username == username).where(ChatHistory.name == name)
+        session.execute(stmt)
+        session.commit()
+    def reset_all_chat_history(self,username):
+        session = Session(self.engine)
+        stmt = delete(ChatHistory).where(ChatHistory.username == username)
+        session.execute(stmt)
+        session.commit()
+
 class ChatHistoryRepo():
     def __init__(self,engine,username) -> None:
         self.engine = engine

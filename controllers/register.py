@@ -1,28 +1,31 @@
 from .base import Base
 from forms import ReigsterForm
-from werkzeug.utils import secure_filename
-from utils.model_repos import UserRepo
 from utils.password_hash import get_password_hash
-import time
-import os
+from context import *
 
 
-ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif'}
+@app.route('/register/<invitation_code>', methods=['GET','POST'])
+def register(invitation_code):
+    register = Register()
+    return register.execute(invitation_code)
+
+
+@app.route('/register', methods=['GET','POST'])
+def register_no_invite():
+    register = Register()
+    return register.execute()
 
 class Register(Base):
-    def execute(self):
+    def execute(self, invitation_code=""):
         form = ReigsterForm()
-        engine = self.context["engine"]
-        app = self.context["app"]
-        userRep = UserRepo(engine)
         if form.validate_on_submit():
             data ={}
             data['username'] =  form.username.data
             invitation_code = form.invitation_code.data
-            if userRep.is_invitation_code_available(invitation_code) is False:
+            if user_repo.is_invitation_code_available(invitation_code) is False:
                 self.flash("邀请码错误")
                 return self.render('register.html', form=form)
-            if userRep.get_user_by_username(data['username']) is not None:
+            if user_repo.get_user_by_username(data['username']) is not None:
                 self.flash("用户名已经存在")
                 return self.render('register.html', form=form)
             data['avatar'] = 'images/default.png'
@@ -34,9 +37,9 @@ class Register(Base):
             data['password'] = get_password_hash(password,app.secret_key)
             data['displayName'] = form.username.data
             data['description'] = ""
-            userRep.insert_user(**data)
-            userRep.decrease_invitation_count(invitation_code)
+            user_repo.insert_user(**data)
+            user_repo.decrease_invitation_count(invitation_code)
             return self.redirect("/login")
         else:
-            form.invitation_code.data = self.context['invitation_code']
+            form.invitation_code.data = invitation_code
         return self.render('register.html', form=form)

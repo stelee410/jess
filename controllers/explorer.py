@@ -1,21 +1,21 @@
 from .base import Base
 from forms import ChatForm
-from utils.model_repos import ProfileRepo
 from bot.chat import ExplorerBot
-from bot.agent import Agent
-from utils.model_repos import UserRepo
-from utils.password_hash import get_password_hash
-import re
-import json
-import logging
-import random
+from context import *
+from utils import config
+
+@app.route('/explore', methods=['GET','POST'])
+def explore():
+    explorer =  Explorer()
+    try:
+        profile_name = config.guider_profile_name
+    except:
+        profile_name = 'pixie'
+    return explorer.execute(profile_name)
 
 
 class Explorer(Base):
-    def execute(self):
-        profile_name = self.context['profile_name']
-        profile_repo = ProfileRepo(self.context['engine'])
-        user_repo = UserRepo(self.context['engine'])
+    def execute(self, profile_name):
         form = ChatForm()
         history = []
         profile = profile_repo.get_profile_by_name(profile_name)
@@ -30,7 +30,6 @@ class Explorer(Base):
             content = form.content.data
             my_msg,assistant_msg = bot.get_last_two_messages(content, history)
             content = assistant_msg['content']
-            arg = ""
             showAds = False
             if content.find("/login") != -1:
                 action = 'login'
