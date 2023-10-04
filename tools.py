@@ -13,7 +13,7 @@ def forward_chat_history(admin):
     profile_name = input("Enter the profile name: ")
     profile = model_repos.ProfileRepo(engine).get_profile_by_name(profile_name)
     owner_username = profile.owned_by
-    message = chat_service.format_out_chat_history(from_, owner_username, profile_name)
+    message = chat_service.format_out_chat_history(from_, owner_username, profile_name,False)
     message_service.send(admin.username, inbox, "你有分享的聊天记录", message)
     print("chat history forwarded")
 
