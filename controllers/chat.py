@@ -34,6 +34,8 @@ class Chat(Base):
     def reset_chat_history(self, name):
         username = session.get('username')
         profile_name = name
+        message = chat_service.format_out_chat_history(username, username, name,False)
+        message_service.send(username, username, "你有保存的聊天记录", message)
         chat_history_repo.reset_chat_history(username, profile_name)
         return self.redirect(f"/chat/{name}")
     

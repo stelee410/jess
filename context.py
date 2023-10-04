@@ -12,6 +12,7 @@ balance_repo = model_repos.BalanceRepo(engine)
 message_repo = model_repos.MessageRepo(engine)
 user_profile_rel_repo = model_repos.UserProfileRelRepo(engine)
 chat_history_repo =model_repos.ChatHistoryRepo2(engine)
+sharing_link_repo = model_repos.SharingLinkRepo(engine)
 app = Flask(__name__)
 app.secret_key = config.secret_key
 bootstrap = Bootstrap5(app)

@@ -1,6 +1,6 @@
 import json
 import datetime
-from models import ChatHistory, Profile,User,User_Profile_Rel,Balance,Message
+from models import ChatHistory, Profile,User,User_Profile_Rel,Balance,Message,SharingLink
 from models import SCOPE_PRIVATE,SCOPE_PUBLIC
 from sqlalchemy.orm import Session
 from sqlalchemy import select,delete,update,and_, or_, func
@@ -373,3 +373,31 @@ class MessageRepo():
         stmt = update(Message).where(Message.id == message_id).values(status=Message.STATUS_ARCHIVED, updated_at=datetime.datetime.now())
         session.execute(stmt)
         session.commit()
+    
+class SharingLinkRepo():
+    def __init__(self,engine) -> None:
+        self.engine = engine
+    def get_sharing_link_by_username_profile_name(self, username, profile_name):
+        session = Session(self.engine)
+        stmt = select(SharingLink).where(SharingLink.username == username).where(SharingLink.profile_name == profile_name)
+        return session.execute(stmt).scalars().first()
+
+    def get_sharing_link(self, link):
+        session = Session(self.engine)
+        stmt = select(SharingLink).where(SharingLink.link == link)
+        return session.execute(stmt).scalars().first()
+    def remove_existing_link(self, username, profile_name):
+        session = Session(self.engine)
+        stmt = delete(SharingLink).where(SharingLink.username == username).where(SharingLink.profile_name == profile_name)
+        session.execute(stmt)
+        session.commit()
+    def add(self, username, profile_name, extra_description, link):
+        session = Session(self.engine)
+        sharing_link = SharingLink(username=username,\
+                                   profile_name=profile_name,\
+                                    extra_description=extra_description, \
+                                    link=link, \
+                                    status=SharingLink.STATUS_ACTIVE)
+        session.add(sharing_link)
+        session.commit()
+        return True

@@ -1,0 +1,116 @@
+{% extends 'layout.html' %}
+{% from 'bootstrap5/form.html' import render_form, render_field, render_form_row %}
+{% block content %}
+<style>
+    .form-control {
+        background-color: black;
+        color: wheat;
+    }
+    .form-control:focus {
+        background-color: black;
+        color: wheat;
+    }
+    a {
+        color: orange;
+    }
+    #url_input_box {
+        width: 100%;
+        background: black;
+        color: wheat;
+    }
+    #info-board {
+        text-align: left;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        width: 100%;
+
+    }
+    #info-board p {
+        border: solid;
+        padding: 10px;
+        background: lightyellow;
+        color: black;
+    }
+</style>
+<h4 id="subheader">设置你的分享</h4>
+<hr/>
+<div id="info-board">
+    <p>欢迎分享你的数字人给你的朋友，点击生成分享链接，可以让朋友与这个数字人开心聊天。要注意哦：<br/>
+            * 你朋友跟数字人的聊天会扣掉你的灵砂点数，所以请谨慎分享<br/>
+            * 重新生成分享链接会让之前的链接无效<br/>
+            * 你可以做一些额外的设置，不过这些设置生效主要取决于数字人的设计<br/>  
+    </p>
+</div>
+<div class="login-form-container container">
+    <div class="form-group">
+        <div class="mb-3">
+          <label for="message" class="form-label">你想要这个虚拟数字人跟对话的人（也就是“我”）怎么聊呢/说什么呢</label>
+          <textarea class="form-control" id="message" rows="3"></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="generateLink()">点击这里生成分享链接</button>
+        <a href="/chat/{{profile_name}}" class="btn btn-secondary">返回</a>
+        {% if existing_link is none %}
+        <div class="mb-3" style="display: none;" id="sharing_pannel">
+            <p>点击复制链接或者把二维码分享给你的朋友吧</p>
+            <p><input value=''  id="url_input_box"/></p>
+            <p>
+                <img id="qrcode" src="" alt="QR Code" height="240px"/>
+            </p>
+        {% else %}
+        <div class="mb-3" id="sharing_pannel">
+            <p>点击复制链接或者把二维码分享给你的朋友吧</p>
+            <p><input value='{{base_url}}friend/chat/{{existing_link.link}}'  id="url_input_box"/></p>
+            <p>
+                <img id="qrcode" src="/static/qrcode/{{existing_link.link}}.png" alt="QR Code" height="240px"/>
+            </p>
+        {% endif %}
+            
+        </div>
+    </div>
+</div>
+<script>
+
+var inputBox = document.getElementById("url_input_box");
+inputBox.addEventListener("click", function(event) {
+    event.preventDefault();
+    copy_url();
+});
+
+function copy_url(){
+    var inputBox = document.getElementById("url_input_box");
+    inputBox.select();
+    document.execCommand("copy");
+    flash("链接已经复制到剪贴板","success");
+}
+function generateLink(){
+    data = {}
+    data['message'] = $('#message').val();
+    data['profile_name'] = '{{profile_name}}';
+    $.ajax({
+        url: '/friend/api/generate_link',
+        type: 'POST',
+        data: data,
+        success: function(response){
+            link = response['link'];
+            share_url = response['share_url'];
+            $('#sharing_pannel').show();
+            $("#url_input_box").val(share_url);
+            $('#qrcode').attr('src', '/static/qrcode/'+link+'.png');
+        },
+        error: function(err){
+            flash("服务器又开小差了～","warning");
+        }
+    });
+}
+$(document).ajaxStart(function() {
+      $('#mask').show();
+      $('#progress').show();
+    }).ajaxStop(function() {
+      $('#mask').hide();
+      $('#progress').hide();
+    }
+);
+</script>
+{% endblock %}

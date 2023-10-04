@@ -77,4 +77,16 @@ class Message(Base):
     updated_at = sa.Column(sa.DateTime, default=sa.func.now())
     status = sa.Column(sa.Integer, nullable=False, default=0)#0:unread,1:read,2:deleted,3:archived
 
+class SharingLink(Base):
+    __tablename__ = 'sharing_link'
+    STATUS_ACTIVE = 0
+    STATUS_INACTIVE = 1
+    id = sa.Column(sa.Integer, primary_key=True)
+    username = sa.Column(sa.String(100), nullable=False)
+    profile_name = sa.Column(sa.String(100), nullable=False)
+    extra_description = sa.Column(sa.String(100), nullable=False)
+    link = sa.Column(sa.String(200), nullable=False)
+    status = sa.Column(sa.Integer, nullable=False)#0:active, 1:inactive
+    created_at = sa.Column(sa.DateTime, default=sa.func.now())
+
     

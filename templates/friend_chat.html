@@ -4,19 +4,12 @@
 <div id="container">
 <div id="chatbox">
     <div id="banner">
-        <a href="/">
-            <img class="icon" src="{{ url_for('static', filename='images/return@2x.png') }}" alt="return-button"  ></button>
-        </a>
         <div>{{profile.displayName}}</div>
         <span id="action_menu_btn"><i class="fas fa-ellipsis-v"></i></span>
         <div class="action_menu">
             <ul>
-                {% if profile.owned_by == session.get('username') %}
-                <li><a class="nav-item nav-link" href="/profile/{{profile.name}}"><i class="fas fa-user-circle"></i>  查看Profile</a></li>
-                {% endif %}
                 <li><a class="nav-item nav-link" onclick="clearChatHistory()"><i class="fas fa-comment"></i>  新建聊天 </a></li>
-                <li><a class="nav-item nav-link" href="/friend/{{profile.name}}"><i class="fas fa-share"></i>  把TA设置为我的数字代理 </a></li>
-                <li><a class="nav-item nav-link" onclick="shareChatHistory()"><i class="fas fa-envelope"></i>  与TA的创建者共享你的聊天 </a></li>
+                <li><a class="nav-item nav-link" onclick="shareChatHistory()"><i class="fas fa-envelope"></i>  与{{user.displayName}}共享你的聊天 </a></li>
             </ul>
         </div>
 
@@ -31,7 +24,7 @@
                             <span class="msg_time_send"></span>
                         </div>
                         <div class="img_cont_msg">
-                            <img src="{{ url_for('static', filename=current_user_avatar) }}"  class="rounded-circle user_img_msg">
+                            <img src="/static/images/default.png"  class="rounded-circle user_img_msg">
                         </div>
                     </div>
                 {% else %}
@@ -59,14 +52,8 @@
     </div>
     {% endif %}
 </div>
-{% if rank >= 98 %}
-<script>
-    
-    showLove();
-</script>
-{% endif %}
 <script lang="javascript">
-    let current_user_avatar = "{{ url_for('static', filename=current_user_avatar) }}";
+    let current_user_avatar = "/static/images/default.png";
     let assistant_avatar = "{{ url_for('static', filename=profile.avatar) }}";
     function get_chat_item_user(content){
         content_text = $("<div>").text(content).html();
@@ -128,9 +115,9 @@
         }
         data ={}
         data['content'] =  user_input;
-        data['profile_name']= "{{profile.name}}";
+        data['link']= "{{link}}";
         $.ajax({
-            url: '/api/chat',
+            url: '/friend/api/chat',
             type: 'POST',
             data: data,
             success: function(response){
@@ -165,7 +152,7 @@
       $("#content").removeAttr('disabled');
     });
     function clearChatHistory(){
-        url = "/reset/{{profile.name}}";
+        url = "/friend/reset_chat";
         $.ajax({
             url: url,
             type: 'GET',
@@ -180,12 +167,12 @@
         });
     }
     function shareChatHistory(){
-        url = "/share/{{profile.name}}";
+        url = "/friend/api/share//{{link}}";
         $.ajax({
             url: url,
             type: 'GET',
             success: function(response){
-                flash("已经成功分享给数字伴侣",'primary');
+                flash("已经成功分享聊天记录给{{user.displayName}}",'primary');
                 $(".action_menu").toggle();
             },
             error: function(err){

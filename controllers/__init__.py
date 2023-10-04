@@ -6,3 +6,4 @@ from .new_chat import NewChat
 from .index import IndexController
 from .profile import ProfileController
 from .message import MessageController
+from .friend_share import FriendShareController
