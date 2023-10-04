@@ -28,7 +28,7 @@ def _generate_qr_code_url_for_friend_sharing(link, avatar_url='./static/images/d
     # adjust image size
     wpercent = (basewidth/float(logo.size[0]))
     hsize = int((float(logo.size[1])*float(wpercent)))
-    logo = logo.resize((basewidth, hsize), Image.ANTIALIAS)
+    logo = logo.resize((basewidth, hsize), Image.LANCZOS)
     path = os.path.join(qr_code_url_base, f'{link}.png')
 
     QRcode = qrcode.QRCode(

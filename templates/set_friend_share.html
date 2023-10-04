@@ -36,7 +36,7 @@
 </style>
 <h4 id="subheader">设置你的分享</h4>
 <hr/>
-<div id="info-board">
+<div id="info-board" class="mb-3">
     <p>欢迎分享你的数字人给你的朋友，点击生成分享链接，可以让朋友与这个数字人开心聊天。要注意哦：<br/>
             * 你朋友跟数字人的聊天会扣掉你的灵砂点数，所以请谨慎分享<br/>
             * 重新生成分享链接会让之前的链接无效<br/>
@@ -49,8 +49,10 @@
           <label for="message" class="form-label">你想要这个虚拟数字人跟对话的人（也就是“我”）怎么聊呢/说什么呢</label>
           <textarea class="form-control" id="message" rows="3"></textarea>
         </div>
+        <div class="mb-3">
         <button class="btn btn-primary" onclick="generateLink()">点击这里生成分享链接</button>
         <a href="/chat/{{profile_name}}" class="btn btn-secondary">返回</a>
+        </div>
         {% if existing_link is none %}
         <div class="mb-3" style="display: none;" id="sharing_pannel">
             <p>点击复制链接或者把二维码分享给你的朋友吧</p>
