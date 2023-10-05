@@ -40,7 +40,7 @@
                             <img src="{{ url_for('static', filename=profile.avatar) }}" class="rounded-circle user_img_msg">
                         </div>
                         <div class="msg_cotainer">
-                            {{ item.content }}
+                            {{ item.content|replace('\n', '<br/>')|safe }}
                             <span class="msg_time"></span>
                         </div>
                     </div>
@@ -86,7 +86,7 @@
         }else{
             content_text = $("<div>").text(content).html();
         }
-        
+        content_text = content_text.replaceAll('\n','<br/>');
         return '\<div class="d-flex justify-content-start mb-4 other-message">\
                         <div class="img_cont_msg">\
                             <img src="'+ assistant_avatar +'" class="rounded-circle user_img_msg">\
