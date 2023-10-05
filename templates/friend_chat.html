@@ -4,7 +4,7 @@
 <div id="container">
 <div id="chatbox">
     <div id="banner">
-        <div>{{profile.displayName}}</div>
+        <div>{{profile.displayName}}(来自{{user.displayName}}的分享)</div>
         <span id="action_menu_btn"><i class="fas fa-ellipsis-v"></i></span>
         <div class="action_menu">
             <ul>
@@ -53,6 +53,8 @@
     {% endif %}
 </div>
 <script lang="javascript">
+    let welcome_msg = "欢迎来到这里，你的朋友{{user.displayName}}已经跟我说了很多关于你的事情，我很高兴认识你，我们可以聊聊天，你可以告诉我你的故事，我会好好聆听的。\n"
+    welcome_msg += "我们的聊天只会存在您的电脑或者手机上，所以您的隐私会有保障，不过我鼓励你把我们的聊天分享给{{user.displayName}}， 点击聊天窗口右上角的菜单，就可以分享哦。"
     let current_user_avatar = "/static/images/default.png";
     let assistant_avatar = "{{ url_for('static', filename=profile.avatar) }}";
     function get_chat_item_user(content){
@@ -82,6 +84,13 @@
                             <span class="msg_time"></span>\
                         </div>\
                     </div>'
+    }
+    function initial_msg(){
+        if ($("#chat-container").find('div').length>0){
+            return;
+        }
+        $chatItem = $(get_chat_item_assistant(welcome_msg));
+        $("#chat-container").append($chatItem);
     }
     function add_progress_icon(){
         $chatItem_assist = $(get_chat_item_assistant('<image class="chat_progress" src ="/static/images/chat_progress.gif"/>',true));
@@ -159,6 +168,7 @@
             success: function(response){
                 $("#chat-container").html("");  
                 $(".action_menu").toggle();
+                initial_msg();
             },
             error: function(err){
                 flash(err.responseText);
@@ -167,7 +177,7 @@
         });
     }
     function shareChatHistory(){
-        url = "/friend/api/share//{{link}}";
+        url = "/friend/api/share/{{link}}";
         $.ajax({
             url: url,
             type: 'GET',
@@ -181,6 +191,8 @@
             }
         });
     }
+    initial_msg();
+   
 </script>
 </div>
 {% endblock %}

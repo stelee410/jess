@@ -80,8 +80,9 @@ class FriendShareController(Base):
         share_link = sharing_link_repo.get_sharing_link(link)
         if share_link is None:
             return self.render("404.html", message=f"Link {link} not found")
-        if share_link!=session.get('link'):
-            session['chat_history'] = None
+        if link!=session.get('link'):
+            session['chat_history'] = []
+        session['link'] = link
 
         username = share_link.username
         profile_name = share_link.profile_name
@@ -89,9 +90,8 @@ class FriendShareController(Base):
         profile = profile_repo.get_profile_by_name(profile_name)
         histroy = session.get('chat_history')
         if histroy is None:
-                histroy = [{'role':'assistant','content':'你好，欢迎来这里。聊天窗口右上角可以点开菜单，可以重新开始聊天，或者与TA分享你的聊天记录，你叫什么名字呢？'}]
+                histroy = []
         session['chat_history']=histroy
-        session['link'] = link
 
         return self.render("friend_chat.html", link=link, user=user, profile=profile,history=histroy)
    
