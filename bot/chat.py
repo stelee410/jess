@@ -137,3 +137,20 @@ class SimpleBot(OpenAIBot):
         pass
     def getResponse(self,message="", history=[]):
         return {"role":"assistant","content":"此数字人尚未初始化，请联系管理员"}
+class AssistantBot(OpenAIBot):
+    def getResponse(self,message="", history=[]):
+        if message!="":
+            history.append({"role":"user","content":message})
+        messages = self.initContext+history
+        #check balance and decrease the balance
+        if self.user_id !=0: #bypass the check for user_id=0
+            if check_balance_of(self.user_id) is False:
+                print("balance is not enough")
+                raise InSufficientBalanceException("balance is not enough")
+            decrease_balance_of(self.user_id, 1)
+        response = openai.ChatCompletion.create(model=self.model,messages=messages,temperature=self.temperature)
+        return response.choices[0].message
+
+class AssistantBotV2(AssistantBot):
+    def _get_model(self):
+        return "gpt-4"

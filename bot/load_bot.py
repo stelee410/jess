@@ -1,17 +1,21 @@
-from bot.chat import OpenAIBot,ExplorerBot,GPT4Bot,LoveBot,SimpleBot
+from bot.chat import OpenAIBot,ExplorerBot,GPT4Bot,LoveBot,SimpleBot,AssistantBot,AssistantBotV2
 
 BotsMapping = {
     'OpenAIBot': OpenAIBot,
     'ExplorerBot': ExplorerBot,
     'GPT4Bot': GPT4Bot,
     'LoveBot': LoveBot,
-    'SimpleBot':SimpleBot
+    'SimpleBot':SimpleBot,
+    'AssistantBot':AssistantBot,
+    'AssistantBotV2':AssistantBotV2
 }
 
 def get_bots_list():
     return [
         ('OpenAIBot', '基础'),
-         ('GPT4Bot', 'GPT4'),
+        ('GPT4Bot', 'GPT4'),
+        ('AssistantBot','智能助理'),
+        ('AssistantBotV2','智能助理2号'),
         ('ExplorerBot', '首页引导员'),
         ('LoveBot', '爱情脑'),
         ('SimpleBot','测试')
