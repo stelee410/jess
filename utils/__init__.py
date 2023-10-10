@@ -1,1 +1,1 @@
-from .decorators import simple_login_required
+from .decorators import simple_login_required, admin_login_required, admin_was_login_required

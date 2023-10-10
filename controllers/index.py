@@ -32,8 +32,7 @@ class IndexController(Base):
     def my(self):
         username = session.get('username')
         user = user_repo.get_user_by_username(username)
-        session['avatar'] = user.avatar
-        session['displayName'] = user.displayName
+        set_session_user(user)
 
         form = UserForm()
         if form.validate_on_submit():
@@ -70,9 +69,7 @@ class IndexController(Base):
         return self.render('my.html', form = form)
     
     def logout(self):
-        session['username'] = None
-        session['displayName'] = None
-        session['avatar'] = None
+        empty_session_user()
         return self.redirect("/login")
     
     def login(self):
@@ -87,9 +84,7 @@ class IndexController(Base):
                 form.password.data = ""
                 return self.render("login.html", form=form)
             else:
-                session['username'] = username
-                session['displayName'] = user.displayName
-                session['avatar'] = user.avatar
+                set_session_user(user)
                 return self.redirect("/")
         return self.render("login.html", form=form)
     def execute(self):
