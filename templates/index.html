@@ -16,22 +16,12 @@
                 <div class="text profile-name">
                     <br> {{profile["displayName"]}}
                 </div>
-                <div class="text2 profile-name">
-                    {% if profile.offline == 0 %}
-                    {{profile["displayName"]}} is online
-                    {% else %}
-                    {{profile["displayName"]}} is offline
-                    {% endif %}
+                <div class="text2">
+                        {{profile.short_description or "这家伙还没有描述呢～"}}
                 </div>
             </a>
         </div>   
         {% endfor %}
-        <div class="box">
-            <a href="/profile/:create">
-                <img class="inner-image" src="{{ url_for('static', filename='images/icon@2x.png') }}"  alt="Box 1 Image">
-                
-            </a>
-        </div>
     </div>
     <hr class="hr"/>
     <div id="container">
@@ -50,14 +40,16 @@
                     <br> {{profile["displayName"]}}
                 </div>
                 <div class="text2">
-                    {% if profile.offline == 0 %}
-                    {{profile["displayName"]}} in online
-                    {% else %}
-                    {{profile["displayName"]}} is offline
-                    {% endif %}
+                        {{profile.short_description or "这家伙还没有描述呢～"}}
                 </div>
             </a>
         </div>   
         {% endfor %}
+        <div class="box">
+            <a href="/profile/:create">
+                <img class="inner-image" src="{{ url_for('static', filename='images/icon@2x.png') }}"  alt="Box 1 Image">
+                
+            </a>
+        </div>
     </div>
 {% endblock %}

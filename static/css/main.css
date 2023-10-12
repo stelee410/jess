@@ -100,10 +100,12 @@ body {
     position: absolute;
     bottom: 0;
     width: 100%;
-  top: 140px;
+    top: 140px;
     color:#64738D;
     text-align: center;
     font-size: 10px;
+    line-height: 1.5em;
+    height: 3em;
 }
 .small-icon {
   width: 50px;
