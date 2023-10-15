@@ -356,7 +356,10 @@ class MessageRepo():
         session = Session(self.engine)
         stmt = select(Message).where(Message.id == message_id)
         return session.execute(stmt).scalars().first()
-
+    def get_message_by_id_reciever(self, message_id,receiver_username):
+        session = Session(self.engine)
+        stmt = select(Message).where(Message.id == message_id).where(Message.receiver==receiver_username)
+        return session.execute(stmt).scalars().first()
     def mark_read(self, message_id):
         session = Session(self.engine)
         stmt = update(Message).where(Message.id == message_id).values(status=Message.STATUS_READ, updated_at=datetime.datetime.now())

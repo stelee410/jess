@@ -61,7 +61,7 @@ class MessageController(Base):
     def show_message(self,username, message_id):
         if username is None:
             return self.redirect('/login')
-        message = message_repo.get_message_by_id(message_id)
+        message = message_repo.get_message_by_id_reciever(message_id,username)
         line_data = []
         if message is None:
             return self.redirect('/messages')
