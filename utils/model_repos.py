@@ -217,7 +217,7 @@ class ProfileRepo():
         if existing_profile is not None:
             logging.warn(f"profile {data['name']} exists!")
         else:
-            profile = Profile(name=data['name'], displayName=data['displayName'], avatar=data['avatar'], bot='SimpleBot', short_description = data["short_description"] ,description="", message="", owned_by=owner, deleted=0, offline=0, scope = PROFILE_SCOPE_PRIVATE)
+            profile = Profile(name=data['name'], displayName=data['displayName'], avatar=data['avatar'], bot='OpenAIBot', short_description = data["short_description"] ,description="", message="", owned_by=owner, deleted=0, offline=0, scope = PROFILE_SCOPE_PRIVATE)
             session.add(profile)
             session.commit()
 
