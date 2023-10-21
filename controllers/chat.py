@@ -11,6 +11,11 @@ import services.message as message_service
 def reset(name):
     return Chat().reset_chat_history(name)
 
+@app.route('/reset-save/<name>', methods=['GET'])
+@simple_login_required
+def reset_save(name):
+    return Chat().reset_chat_history(name, True)
+
 @app.route('/share/<name>', methods=['GET'])
 @simple_login_required
 def share(name):
@@ -31,10 +36,13 @@ class Chat(Base):
         message_service.send(from_, to_, "你有分享的聊天记录", message)
         return self.redirect(f"/chat/{name}")
 
-    def reset_chat_history(self, name):
+    def reset_chat_history(self, name, save_flag=False):
         username = session.get('username')
         profile_name = name
-        message = chat_service.format_out_chat_history(username, username, name,False)
+        if save_flag:
+            message = chat_service.save_and_format_out_chat_history(username, username, name,True)
+        else:
+            message = chat_service.format_out_chat_history(username, username, name,False)
         message_service.send(username, username, "你有保存的聊天记录", message)
         chat_history_repo.reset_chat_history(username, profile_name)
         return self.redirect(f"/chat/{name}")

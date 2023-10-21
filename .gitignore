@@ -27,6 +27,7 @@ share/python-wheels/
 MANIFEST
 static/jess.jpg
 profiles/*
+blob/*
 jess.db
 utils/config.py
 static/profiles

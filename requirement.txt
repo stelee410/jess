@@ -11,3 +11,4 @@ Jinja2
 flask-restful
 Pillow
 qrcode
+scikit-learn

@@ -21,9 +21,9 @@ def get_bots_list():
         ('SimpleBot','测试')
     ]
 
-def load_bot(bot_name, description, messages, caller_id, context):
-    return BotsMapping[bot_name](description, messages, caller_id, context)
+def load_bot(bot_name, description, messages, caller_id, context, username=None, profilename=None):
+    return BotsMapping[bot_name](description, messages, caller_id,context, username, profilename)
 
-def load_bot_by_profile(profile, caller_id, context={}):
+def load_bot_by_profile(profile, caller_id, context={}, username=None):
     context = {**context,**{"profile":profile}}
-    return BotsMapping[profile.bot](profile.description, profile.message, caller_id, context)
+    return BotsMapping[profile.bot](profile.description, profile.message, caller_id, context, username, profile.name)

@@ -23,6 +23,9 @@ app.secret_key = config.secret_key
 bootstrap = Bootstrap5(app)
 csrf = CSRFProtect(app)
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif','JPG', 'JPEG', 'PNG', 'GIF','webp','WEBP'}
+EMBEDDING_MODEL = "text-embedding-ada-002"
+
+cache = {}
 
 def set_session_user(user):
     session['username'] = user.username

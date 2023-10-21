@@ -5,6 +5,10 @@ import jinja2
 from sqlalchemy import create_engine
 from utils import config
 from utils.model_repos import BalanceRepo
+from services import cache_service
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
+from context import EMBEDDING_MODEL
 
 engine = create_engine(config.connection_str)
 balance_repo = BalanceRepo(engine)
@@ -36,14 +40,13 @@ class InSufficientBalanceException(Exception):
 
 #for version 2.0, feeds is the partial json objects array with jinja templates format
 class OpenAIBot():
-    def __init__(self,initMsg,feeds, user_id,context ={}) -> None: #context is the context of the conversation
+    def __init__(self,initMsg,feeds, user_id, context ={}, username = None, profilename = None) -> None: #context is the context of the conversation
         feeds, version = auto_detect_version2(feeds)
         initMsg = render_string(initMsg, **context)
         feeds = render_string(feeds, **context)
         if self._get_pre_context() != "":
             initMsg = self._get_pre_context()+"\n"+initMsg
         self.initContext=[{"role":"system","content":initMsg}]
-        feedsArray = []
         if version=="2.0":
             feeds = feeds.rstrip(',\n')
             feedsArray=json.loads(f"[{feeds}]")
@@ -61,6 +64,8 @@ class OpenAIBot():
         self.model = self._get_model()
         self.temperature = self._get_temperature()
         self.user_id = user_id
+        self.username = username
+        self.profilename = profilename
     
     def _get_model(self):
         return "gpt-3.5-turbo-16k"
@@ -71,9 +76,28 @@ class OpenAIBot():
     def _get_pre_context(self):
         return ""
     
+    def buildMemory(self, message):
+        if message=="":
+            return
+        if self.username is not None and self.profilename is not None:
+            chat_memory = cache_service.get_chat_memory(self.username, self.profilename)
+            if chat_memory is not None:
+                input_embedding = openai.Embedding.create(input=message,model=EMBEDDING_MODEL).data[0].embedding
+                similarities = cosine_similarity(np.array(input_embedding).reshape(1, -1), [c['embedding'] for c in chat_memory])
+                if similarities[0][similarities.argmax()] < 0.5:
+                    return
+                result = np.argsort(similarities)[0][-3:]
+                for i in result:
+                    c = chat_memory[i]
+                    print('content:',c['content'],'similarity:',similarities[0][i])
+                    self.initContext.append({'role':c['role'], 'content':c['content']})
+                
+
     def getResponse(self,message="", history=[]):
+        self.buildMemory(message)
         if message!="":
             history.append({"role":"user","content":message})
+
         messages = self.initContext+history
         #check balance and decrease the balance
         if self.user_id !=0: #bypass the check for user_id=0
@@ -133,10 +157,11 @@ class LoveBot(OpenAIBot):
         """
 
 class SimpleBot(OpenAIBot):
-    def __init__(self,initMsg,feeds, user_id,context ={}):
+    def __init__(self,initMsg,feeds, user_id, context ={}):
         pass
     def getResponse(self,message="", history=[]):
         return {"role":"assistant","content":"此数字人尚未初始化，请联系管理员"}
+    
 class AssistantBot(OpenAIBot):
     def getResponse(self,message="", history=[]):
         if message!="":

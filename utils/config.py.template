@@ -6,3 +6,4 @@ initial_balance = 100
 
 secret_key = ''
 connection_str = f""
+cache_uri = './blob/'

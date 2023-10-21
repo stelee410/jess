@@ -93,7 +93,7 @@ class NewChat(Base):
         
         botContext = {"username":username,"displayName":user.displayName}
 
-        bot = load_bot_by_profile(profile,user.id, botContext)
+        bot = load_bot_by_profile(profile,user.id, botContext,username)
         history_repo = chat_history_repo
         history = history_repo.get_chat_history_by_name(username, profile_name)
         try:
