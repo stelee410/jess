@@ -86,7 +86,7 @@ class OpenAIBot():
                 similarities = cosine_similarity(np.array(input_embedding).reshape(1, -1), [c['embedding'] for c in chat_memory])
                 if similarities[0][similarities.argmax()] < 0.5:
                     return
-                result = np.argsort(similarities)[0][-3:]
+                result = np.argsort(similarities)[0][-5:]
                 for i in result:
                     c = chat_memory[i]
                     print('content:',c['content'],'similarity:',similarities[0][i])
@@ -94,7 +94,11 @@ class OpenAIBot():
                 
 
     def getResponse(self,message="", history=[]):
-        self.buildMemory(message)
+        input_message = ""
+        for n in history[-3:]:
+            input_message += n["content"]+"\n"
+        input_message += message
+        self.buildMemory(input_message)
         if message!="":
             history.append({"role":"user","content":message})
 
