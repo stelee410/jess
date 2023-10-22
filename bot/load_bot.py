@@ -10,10 +10,14 @@ BotsMapping = {
     'AssistantBotV2':AssistantBotV2
 }
 
+
+def if_support_memory(botname):
+    return botname in ['GPT4Bot']
+
 def get_bots_list():
     return [
         ('OpenAIBot', '基础'),
-        ('GPT4Bot', 'GPT4'),
+        ('GPT4Bot', 'GPT4（支持长期记忆哦）'),
         ('AssistantBot','智能助理'),
         ('AssistantBotV2','智能助理2号'),
         ('ExplorerBot', '首页引导员'),

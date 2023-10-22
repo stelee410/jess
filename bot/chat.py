@@ -77,20 +77,7 @@ class OpenAIBot():
         return ""
     
     def buildMemory(self, message):
-        if message=="":
-            return
-        if self.username is not None and self.profilename is not None:
-            chat_memory = cache_service.get_chat_memory(self.username, self.profilename)
-            if chat_memory is not None:
-                input_embedding = openai.Embedding.create(input=message,model=EMBEDDING_MODEL).data[0].embedding
-                similarities = cosine_similarity(np.array(input_embedding).reshape(1, -1), [c['embedding'] for c in chat_memory])
-                if similarities[0][similarities.argmax()] < 0.5:
-                    return
-                result = np.argsort(similarities)[0][-5:]
-                for i in result:
-                    c = chat_memory[i]
-                    print('content:',c['content'],'similarity:',similarities[0][i])
-                    self.initContext.append({'role':c['role'], 'content':c['content']})
+        pass
                 
 
     def getResponse(self,message="", history=[]):
@@ -123,7 +110,25 @@ class OpenAIBot():
     
     def get_last_two_messages(self,message, history):
         return self.chat(message, history)
-    
+
+class OpenAIBotWithMemory(OpenAIBot):
+
+    def buildMemory(self, message):
+        if message=="":
+            return
+        if self.username is not None and self.profilename is not None:
+            chat_memory = cache_service.get_chat_memory(self.username, self.profilename)
+            if chat_memory is not None:
+                input_embedding = openai.Embedding.create(input=message,model=EMBEDDING_MODEL).data[0].embedding
+                similarities = cosine_similarity(np.array(input_embedding).reshape(1, -1), [c['embedding'] for c in chat_memory])
+                if similarities[0][similarities.argmax()] < 0.5:
+                    return
+                result = np.argsort(similarities)[0][-5:]
+                for i in result:
+                    c = chat_memory[i]
+                    #print('content:',c['content'],'similarity:',similarities[0][i])
+                    self.initContext.append({'role':c['role'], 'content':c['content']})
+
 class ExplorerBot(OpenAIBot):
     def _get_pre_context(self):
         prompt = f"""
@@ -144,7 +149,7 @@ class ExplorerBot(OpenAIBot):
     def set_temperature(self,temperature):
         self.temperature = temperature
 
-class GPT4Bot(OpenAIBot):
+class GPT4Bot(OpenAIBotWithMemory):
     def _get_model(self):
         return "gpt-4"
     def _get_temperature(self):

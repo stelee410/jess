@@ -3,6 +3,7 @@ from utils.model_repos import UserRepo,ProfileRepo,UserProfileRelRepo,PROFILE_SC
 from forms import ChatForm
 from context import *
 from utils import simple_login_required
+from bot.load_bot import if_support_memory
 import services.chat as chat_service
 import services.message as message_service
 
@@ -65,8 +66,9 @@ class Chat(Base):
             user_profile_rel_repo.quick_update(username, profile.name)
 
         history = chat_history_repo.get_chat_history_by_name(username, name)
+        support_memory = if_support_memory(profile.bot)
         form = ChatForm()
         return self.render('new_chat.html', form=form, \
                            history=history,\
                             history_len=len(history), rank=0, \
-                            profile = profile, current_user_avatar = avatar)
+                            profile = profile, current_user_avatar = avatar, support_memory=support_memory)
