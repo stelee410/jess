@@ -119,6 +119,7 @@ class OpenAIBotWithMemory(OpenAIBot):
         if self.username is not None and self.profilename is not None:
             long_term_memory = long_term_momory_service.get_longterm_memory(self.username, self.profilename,message)
             self.initContext=self.initContext+long_term_memory
+            print(self.initContext)
 class ExplorerBot(OpenAIBot):
     def _get_pre_context(self):
         prompt = f"""
