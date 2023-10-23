@@ -1,9 +1,10 @@
 from utils.config import cache_uri
-from context import cache, client,EMBEDDING_MODEL
+from context import cache, client,EMBEDDING_MODEL,NAMESPACE_UUID
 import os
 import json
 import openai
 import uuid
+import hashlib
 
 from chromadb.utils import embedding_functions
 
@@ -82,12 +83,18 @@ def save_longterm_memory(username, profilename, chat_history):
     metadatas = []
     ids = []
     index = 0
+    embeddings = []
     for chat in chat_history:
         documents.append(chat['content'])
         metadatas.append({"role":chat['role']})
         ids.append(f"{id_prefix}-{index}")
         index = index+1
+        if 'embedding' in chat:
+            embeddings.append(chat['embedding'])
+    if embeddings == []:
+        embeddings = None
     collection.add(
+        embeddings=embeddings,
         documents = documents,
         metadatas = metadatas,
         ids=ids
@@ -104,4 +111,6 @@ def get_longterm_memory(username, profilename, message):
     
 
 def generate_key_for_chat_memory(username, profilename):
-    return f"{username}-{profilename}--chat_history.jsonp"
+    raw_key = f"{username}-{profilename}"
+    key = uuid.uuid3(NAMESPACE_UUID, raw_key)
+    return f"ltm-{key}"

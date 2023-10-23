@@ -4,6 +4,8 @@ from utils import config,model_repos
 from flask import session,Flask,request
 from flask_wtf import CSRFProtect
 from flask_bootstrap import Bootstrap5
+from uuid import UUID
+
 import chromadb
 
 from utils.config import cache_uri
@@ -31,6 +33,8 @@ EMBEDDING_MODEL = "text-embedding-ada-002"
 cache = {} #memory cache for other purpose, it was supposed to used in vector data store, but I have moved to use chroma instead
 
 client =  chromadb.PersistentClient(cache_uri)
+
+NAMESPACE_UUID=UUID('6ba7b811-9dad-11d1-80b4-00c04fd430c8')
 
 def set_session_user(user):
     session['username'] = user.username

@@ -4,6 +4,12 @@ from sqlalchemy import create_engine
 import random
 from services import message as message_service
 from services import chat as chat_service
+from services import long_term_momory_service as ltm_service
+
+from context import *
+
+import os
+import json
 
 engine = create_engine(config.connection_str)
 
@@ -91,6 +97,52 @@ def create_invitation_code():
     count = int(count)
     user_repo.update_invitation(username, invitation_code, count)
     print('invitation code updated')
+
+def _restruct(c,user_display_name,profile_display_name):
+  if c.startswith(user_display_name+":"):
+    return {'role':'user','content':c[len(user_display_name)+1:]}
+  else:
+    return {'role':'assistant','content':c[len(profile_display_name)+1:]}
+
+def build_memory_for_user():
+    username = input("Enter the user name: ")
+    profilename = input("Enter the profile name: ")
+    user = user_repo.get_user_by_username(username)
+    profile = profile_repo.get_profile_by_name(profilename)
+    #the memory will be built from message once.
+    messages = message_repo.get_message_list(username)
+    for message in messages:
+        title = message.title
+        content = message.message
+        if title == '你有保存的聊天记录' and content.find(f"亲爱的数字人 {profile.displayName}({profile.name}) 用户") >= 0:
+            content = content[content.find("-----")+8:]
+            chat = content.split('\n\n')
+            chat_list =[_restruct(c,user.displayName,profile.displayName) for c in chat if c!=""]
+            print("save long term memory...")
+            try:
+                if chat_list != []:
+                    ltm_service.save_longterm_memory(username, profilename, chat_list)
+            except Exception as e:
+                print("save long term memory...failed")
+                print(e)
+                continue
+            print("save long term memory...done")
+def build_memory_from_folder():
+    folder_name = input("Enter the folder path: ")
+    jsonp_file_names = [filename for filename in os.listdir(folder_name) if filename.endswith('.jsonp')]
+    for jsonp_file_name in jsonp_file_names:
+        print(f"processing {jsonp_file_name}")
+        username, profilename = jsonp_file_name.split('--')[0].split('-')
+        blob_path = os.path.join(folder_name, jsonp_file_name)
+        chat_list = []
+        if os.path.exists(blob_path):
+            with open(blob_path, 'rb') as f:
+                print("save long term memory...start")
+                ltm_service.save_longterm_memory(username, profilename, [json.loads(line) for line in f.readlines()])
+                print("save long term memory...done")
+    print('job finished')
+
+
     
 
 if __name__ == '__main__':
@@ -102,7 +154,7 @@ if __name__ == '__main__':
         exit()
     while True:
         print("what do you want?")
-        print("create [u]ser | create [i]nvitation code |[r]eset password")
+        print("create [u]ser | create [i]nvitation code |[r]eset password | [b]uild memory for a user |build memory from f[o]lder")
         print("[c]harge | [s]end message | [f]foward the chat history | [q]uit")
         action = input(":")
         if action == "u":
@@ -119,5 +171,9 @@ if __name__ == '__main__':
             send_message(admin)
         elif action == 'f':
             forward_chat_history(admin)
+        elif action == 'b':
+            build_memory_for_user()
+        elif action == 'o':
+            build_memory_from_folder()
         else:
             print("invalid action")
