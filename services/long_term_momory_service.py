@@ -104,10 +104,9 @@ def get_longterm_memory(username, profilename, message):
     collection = get_collection(collection_name)
     result = collection.query(
         query_texts=message,
-        n_results=5,
-        where={"role":"user"}
+        n_results=6
     )
-    return [{'role':"user",'content':d} for d in result['documents'][0]]
+    return [{'role':result['metadatas'][0][index]['role'],'content':d} for index, d in enumerate(result['documents'][0])]
     
 
 def generate_key_for_chat_memory(username, profilename):

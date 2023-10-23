@@ -1,6 +1,8 @@
-__import__('pysqlite3')
 import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+from sys import platform
+if platform == "linux" or platform == "linux2":
+    __import__('pysqlite3')
+    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 from utils import config, model_repos, password_hash
 from sqlalchemy import create_engine
 import random
