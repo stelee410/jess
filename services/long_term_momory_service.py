@@ -1,8 +1,23 @@
 from utils.config import cache_uri
-from context import cache
+from context import cache, client,EMBEDDING_MODEL
 import os
 import json
+import openai
+import uuid
 
+from chromadb.utils import embedding_functions
+
+openai_ef=embedding_functions.OpenAIEmbeddingFunction(
+    api_key=openai.api_key,
+    model_name=EMBEDDING_MODEL
+)
+
+def get_collection(collection_name):
+    return client.get_or_create_collection(
+        name=collection_name,
+        metadata={"hnsw:space":"cosine"}, 
+        embedding_function=openai_ef
+        )
 
 #so far the cache is used to serve the chat memory
 #the format will be JSONP
@@ -58,6 +73,35 @@ def set_chat_memory(username, profilename, json_list):
             f.write("\n")
     reset_blob(key)
     return get_chat_memory(username, profilename)
+
+def save_longterm_memory(username, profilename, chat_history):
+    collection_name =generate_key_for_chat_memory(username, profilename)
+    collection = get_collection(collection_name)
+    id_prefix = uuid.uuid4()
+    documents = []
+    metadatas = []
+    ids = []
+    index = 0
+    for chat in chat_history:
+        documents.append(chat['content'])
+        metadatas.append({"role":chat['role']})
+        ids.append(f"{id_prefix}-{index}")
+        index = index+1
+    collection.add(
+        documents = documents,
+        metadatas = metadatas,
+        ids=ids
+    )
+def get_longterm_memory(username, profilename, message):
+    collection_name =generate_key_for_chat_memory(username, profilename)
+    collection = get_collection(collection_name)
+    result = collection.query(
+        query_texts=message,
+        n_results=5,
+        where={"role":"user"}
+    )
+    return [{'role':"user",'content':d} for d in result['documents'][0]]
+    
 
 def generate_key_for_chat_memory(username, profilename):
     return f"{username}-{profilename}--chat_history.jsonp"

@@ -4,6 +4,9 @@ from utils import config,model_repos
 from flask import session,Flask,request
 from flask_wtf import CSRFProtect
 from flask_bootstrap import Bootstrap5
+import chromadb
+
+from utils.config import cache_uri
 
 #facility functions
 from utils import simple_login_required
@@ -25,7 +28,9 @@ csrf = CSRFProtect(app)
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif','JPG', 'JPEG', 'PNG', 'GIF','webp','WEBP'}
 EMBEDDING_MODEL = "text-embedding-ada-002"
 
-cache = {}
+cache = {} #memory cache for other purpose, it was supposed to used in vector data store, but I have moved to use chroma instead
+
+client =  chromadb.PersistentClient(cache_uri)
 
 def set_session_user(user):
     session['username'] = user.username

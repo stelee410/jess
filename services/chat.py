@@ -1,6 +1,6 @@
 from context import engine, user_repo,profile_repo,chat_history_repo,EMBEDDING_MODEL
 from utils import  model_repos
-from services.cache_service import *
+from services.long_term_momory_service import *
 import logging
 import jinja2
 import datetime
@@ -59,10 +59,7 @@ def format_out_chat_history(from_,to_,profile_name,check_owner=True):
 
 def save_and_format_out_chat_history(from_,to_,profile_name,check_owner=True):
     chat_history = _get_chat_history_list(from_,profile_name)
-    for c in chat_history:
-        response = openai.Embedding.create(input=c['content'],model=EMBEDDING_MODEL)
-        c['embedding'] = response.data[0].embedding
-    set_chat_memory(from_,profile_name,chat_history)
+    save_longterm_memory(from_,profile_name,chat_history)
     return format_out_chat_history(from_,to_,profile_name,check_owner)
 
 def get_msg_body(user, profile, chat_history=[]):

@@ -12,3 +12,4 @@ flask-restful
 Pillow
 qrcode
 scikit-learn
+chromadb

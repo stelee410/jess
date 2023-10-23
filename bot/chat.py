@@ -5,7 +5,7 @@ import jinja2
 from sqlalchemy import create_engine
 from utils import config
 from utils.model_repos import BalanceRepo
-from services import cache_service
+from services import long_term_momory_service
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 from context import EMBEDDING_MODEL
@@ -117,18 +117,8 @@ class OpenAIBotWithMemory(OpenAIBot):
         if message=="":
             return
         if self.username is not None and self.profilename is not None:
-            chat_memory = cache_service.get_chat_memory(self.username, self.profilename)
-            if chat_memory is not None:
-                input_embedding = openai.Embedding.create(input=message,model=EMBEDDING_MODEL).data[0].embedding
-                similarities = cosine_similarity(np.array(input_embedding).reshape(1, -1), [c['embedding'] for c in chat_memory])
-                if similarities[0][similarities.argmax()] < 0.5:
-                    return
-                result = np.argsort(similarities)[0][-5:]
-                for i in result:
-                    c = chat_memory[i]
-                    #print('content:',c['content'],'similarity:',similarities[0][i])
-                    self.initContext.append({'role':c['role'], 'content':c['content']})
-
+            long_term_memory = long_term_momory_service.get_longterm_memory(self.username, self.profilename,message)
+            self.initContext=self.initContext+long_term_memory
 class ExplorerBot(OpenAIBot):
     def _get_pre_context(self):
         prompt = f"""
