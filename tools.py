@@ -1,4 +1,6 @@
-
+__import__('pysqlite3')
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 from utils import config, model_repos, password_hash
 from sqlalchemy import create_engine
 import random
