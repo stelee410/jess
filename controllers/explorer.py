@@ -28,7 +28,7 @@ class Explorer(Base):
         if form.validate_on_submit():
             history = session.get('history', [])
             content = form.content.data
-            my_msg,assistant_msg = bot.get_last_two_messages(content, history)
+            my_msg,assistant_msg = bot.get_last_two_messages(content, [{**c,**{"saved_flag":0}} for c in history])
             content = assistant_msg['content']
             showAds = False
             if content.find("/login") != -1:

@@ -12,3 +12,4 @@ Pillow
 qrcode
 scikit-learn
 chromadb
+tiktoken

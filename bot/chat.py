@@ -9,6 +9,7 @@ from services import long_term_momory_service
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 from context import EMBEDDING_MODEL
+from utils import tokenizer
 
 engine = create_engine(config.connection_str)
 balance_repo = BalanceRepo(engine)
@@ -40,6 +41,7 @@ class InSufficientBalanceException(Exception):
 
 #for version 2.0, feeds is the partial json objects array with jinja templates format
 class OpenAIBot():
+    __support_long_term_memory__ = False
     def __init__(self,initMsg,feeds, user_id, context ={}, username = None, profilename = None) -> None: #context is the context of the conversation
         feeds, version = auto_detect_version2(feeds)
         initMsg = render_string(initMsg, **context)
@@ -66,7 +68,11 @@ class OpenAIBot():
         self.user_id = user_id
         self.username = username
         self.profilename = profilename
-    
+        self.support_long_term_memory = self.__class__.__support_long_term_memory__
+
+    def disabled_longterm_memory(self):
+        self.support_long_term_memory = False
+
     def _get_model(self):
         return "gpt-3.5-turbo-16k"
     
@@ -77,19 +83,47 @@ class OpenAIBot():
         return ""
     
     def buildMemory(self, message):
-        pass
-                
+        return self.initContext
+
+    def get_max_token_num_hard(self):
+        return 4096
+    def get_max_token_num_soft(self):
+        return 1500
 
     def getResponse(self,message="", history=[]):
-        input_message = ""
-        for n in history[-3:]:
-            input_message += n["content"]+"\n"
-        input_message += message
-        self.buildMemory(input_message)
+        raw_history = [c for c in history if c['saved_flag']==0]
+        history = [ {'role':c['role'], 'content':c['content']} for c in raw_history]
+        if self.support_long_term_memory:
+            input_message = ""
+            for n in history[-3:]:
+                input_message += n["content"]+"\n"
+            input_message += message
+            initContext = self.buildMemory(input_message)
+        else:
+            initContext = self.initContext
         if message!="":
             history.append({"role":"user","content":message})
 
-        messages = self.initContext+history
+        messages = initContext+history
+        
+        if self.support_long_term_memory:
+            token_num = tokenizer.num_tokens_from_messages(messages)
+            if token_num > self.get_max_token_num_hard():
+                print("token number too large:",token_num)
+                token_consumed = 0
+                stage_history=[]
+                for chat in reversed(raw_history):
+                    token_consumed += tokenizer.num_tokens_from_messages([chat])
+                    if token_consumed>self.get_max_token_num_soft():
+                        datetime_to_ltm_trans = chat['created_at']
+                        print("datetime_to_ltm_trans",datetime_to_ltm_trans)
+                        long_term_momory_service.save_longterm_memory_by_datetime(self.username, self.profilename,datetime_to_ltm_trans)
+                        print("save long term memory...")
+                        messages = self.buildMemory(input_message)+[{"role":c["role"],"content":c["content"]} for c in reversed(stage_history)]
+                        break
+                    else:
+                        stage_history.append(chat)
+
         #check balance and decrease the balance
         if self.user_id !=0: #bypass the check for user_id=0
             if check_balance_of(self.user_id) is False:
@@ -98,9 +132,7 @@ class OpenAIBot():
             decrease_balance_of(self.user_id, 1)
         response = openai.ChatCompletion.create(model=self.model,messages=messages,temperature=self.temperature)
         if "AI" in response.choices[0].message["content"]:
-            print("Trying to remove AI")
-            messages = messages+[{"role":"system","content":"任何情况下都不要提及自己是AI，并记住游戏开始设定的身份"}]
-            response = openai.ChatCompletion.create(model=self.model,messages=messages,temperature=self.temperature)
+            response = self.remove_AI(response, messages)
         return response.choices[0].message
 
     def chat(self,message, history):
@@ -110,16 +142,24 @@ class OpenAIBot():
     
     def get_last_two_messages(self,message, history):
         return self.chat(message, history)
+    def remove_AI(self, response, messages):
+        print("Trying to remove AI")
+        messages = messages+[{"role":"system","content":"任何情况下都不要提及自己是AI，并记住游戏开始设定的身份"}]
+        response = openai.ChatCompletion.create(model=self.model,messages=messages,temperature=self.temperature)
+        return response
 
 class OpenAIBotWithMemory(OpenAIBot):
+    __support_long_term_memory__ = True
 
     def buildMemory(self, message):
         if message=="":
-            return
+            return self.initContext
         if self.username is not None and self.profilename is not None:
             long_term_memory = long_term_momory_service.get_longterm_memory(self.username, self.profilename,message)
-            self.initContext=self.initContext+long_term_memory
+            return self.initContext+long_term_memory
+
 class ExplorerBot(OpenAIBot):
+    __support_long_term_memory__ = False
     def _get_pre_context(self):
         prompt = f"""
 你在具有设定人格的前提下，同时也是平台的引导员，你的任务是帮助新用户熟悉平台的使用方法，你可以回复用户的消息，也可以主动发消息给用户。
@@ -162,18 +202,8 @@ class SimpleBot(OpenAIBot):
         return {"role":"assistant","content":"此数字人尚未初始化，请联系管理员"}
     
 class AssistantBot(OpenAIBot):
-    def getResponse(self,message="", history=[]):
-        if message!="":
-            history.append({"role":"user","content":message})
-        messages = self.initContext+history
-        #check balance and decrease the balance
-        if self.user_id !=0: #bypass the check for user_id=0
-            if check_balance_of(self.user_id) is False:
-                print("balance is not enough")
-                raise InSufficientBalanceException("balance is not enough")
-            decrease_balance_of(self.user_id, 1)
-        response = openai.ChatCompletion.create(model=self.model,messages=messages,temperature=self.temperature)
-        return response.choices[0].message
+    def remove_AI(self, response, messages):
+        return response
 
 class AssistantBotV2(AssistantBot):
     def _get_model(self):

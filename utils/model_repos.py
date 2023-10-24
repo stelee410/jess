@@ -29,7 +29,7 @@ def rebuild_history(history):
 class ChatHistoryRepo2():
     def __init__(self,engine) -> None:
         self.engine = engine
-    def get_chat_history_by_name(self,username, name,attache_time=False):
+    def get_chat_history_by_name(self,username, name,attache_time=True):
         session = Session(self.engine)
         stmt = select(ChatHistory).where(ChatHistory.username == username).where(ChatHistory.name == name)
         chat_history = []
@@ -37,8 +37,33 @@ class ChatHistoryRepo2():
             item = json.loads(chat.message)
             if attache_time:
                 item['created_at'] = chat.created_at
+            item['saved_flag'] = chat.saved_flag
             chat_history.append(item)
         return chat_history
+    
+    def get_chat_history_by_name_before(self,username, name,before_time):
+        session = Session(self.engine)
+        stmt = select(ChatHistory)\
+            .where(ChatHistory.username == username)\
+            .where(ChatHistory.name == name)\
+            .where(ChatHistory.created_at <= before_time)\
+            .where(ChatHistory.saved_flag == 0)
+        chat_history = []
+        for chat in  session.execute(stmt).scalars():
+            item = json.loads(chat.message)
+            chat_history.append(item)
+        return chat_history
+
+    def set_saved_flag_by_name_and_before(self, username, name,before_time):
+        session = Session(self.engine)
+        stmt = update(ChatHistory)\
+                .where(ChatHistory.username == username)\
+                .where(ChatHistory.name == name)\
+                .where(ChatHistory.saved_flag == 0)\
+                .where(ChatHistory.created_at <= before_time)\
+                .values(saved_flag=1)
+        session.execute(stmt)
+        session.commit()
         
     def insert_message_to_chat_history(self, username, name, message):
         if isinstance(message, dict):

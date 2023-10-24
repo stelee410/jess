@@ -12,6 +12,7 @@ class ChatHistory(Base):
     username = sa.Column(sa.String(80), nullable=False)
     name = sa.Column(sa.String(80), nullable=False)
     message = sa.Column(sa.Text, nullable=False)
+    saved_flag = sa.Column(sa.Integer, nullable=False, default=0)
     created_at = sa.Column(sa.DateTime, nullable=False)
 
     def __repr__(self):

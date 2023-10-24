@@ -1,5 +1,5 @@
 from utils.config import cache_uri
-from context import cache, client,EMBEDDING_MODEL,NAMESPACE_UUID
+from context import cache, client,EMBEDDING_MODEL,NAMESPACE_UUID,chat_history_repo
 import os
 import json
 import openai
@@ -74,6 +74,11 @@ def set_chat_memory(username, profilename, json_list):
             f.write("\n")
     reset_blob(key)
     return get_chat_memory(username, profilename)
+
+def save_longterm_memory_by_datetime(username, profilename, created_at):
+    history = chat_history_repo.get_chat_history_by_name_before(username, profilename, created_at)
+    save_longterm_memory(username, profilename, history)
+    chat_history_repo.set_saved_flag_by_name_and_before(username, profilename, created_at)
 
 def save_longterm_memory(username, profilename, chat_history):
     collection_name =generate_key_for_chat_memory(username, profilename)

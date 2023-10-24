@@ -63,7 +63,8 @@ class FriendShareController(Base):
         bot = load_bot(profile.bot, description, profile.message, user.id, {"profile":profile,'from_friend':True})
         history = session.get('chat_history')
         try:
-            user_input, response = bot.chat(content, history)
+            bot.disabled_longterm_memory()
+            user_input, response = bot.chat(content, [{**c,**{"saved_flag":0}} for c in history])
             history.append(user_input)
             history.append(response)
             session['chat_history'] = history
