@@ -1,0 +1,77 @@
+{% from 'bootstrap5/nav.html' import render_nav_item %}
+{% from 'bootstrap5/utils.html' import render_messages %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="灵芸AI">
+    <meta property="og:description" content="欢迎开启你的数字生命">
+    <meta property="og:image" content="https://elevenlee.com/static/profiles/1694600346_catgirl.PNG">
+    <meta property="og:url" content="https://elevenlee.com">
+    <title>灵芸.AI</title>
+    <link rel="icon" href="{{ url_for('static', filename='images/icon1.png') }}">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/main.css?v=009'">
+    <link rel="stylesheet" href="/static/fontawesome/css/all.min.css">
+	<script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/autosize.min.js"></script>
+    <script type="text/javascript" src="/static/js/chat.js?v=005"></script>
+</head>
+
+<body>
+    <!-- Modal -->
+    <div class="modal fade" id="my-modal" tabindex="-1" role="dialog" aria-labelledby="my-modal-label" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="my-modal-label">
+            </h5>
+            </div>
+            <div class="modal-body" id="my-modal-body">
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="$('#my-modal').modal('hide');">Close</button>
+            <button type="button" class="btn" id="my-modal-action"></button>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <div id="mask"></div>
+    <div id="progress">
+        <div>Loading...</div>
+        <progress></progress>
+    </div>
+    <div id="logo">
+        <a href="/"><img id="logo" src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo"></a>
+    </div>
+    {% if userDisplayName %}
+    <div id="user-container">
+        余额: {{balance}} | 
+        {% if has_unread_msg %}
+        <a href="/messages" class="text-white"><i class="fa fa-envelope fa-pulse fa-fw" aria-hidden="true"></i></a>
+        {% else %}
+        <a href="/messages" class="text-white"><i class="fa fa-envelope fa-fw" aria-hidden="true"></i></a>
+        {% endif %}
+        <a href="/my" class="text-white"><i class="fa fa-cog fa-fw"></i></a>
+    </div>
+    {% endif %}
+    <div id="main">
+        {{ render_messages(container=False, dismissible=True, dismiss_animate=True) }}
+        {% block content %}{% endblock %}
+    <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/static/js/popper.min.js"></script>
+    </div>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FXEGHJPW1L"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-FXEGHJPW1L');
+    </script>
+</body>
+</html>

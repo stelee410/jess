@@ -10,6 +10,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 from context import EMBEDDING_MODEL
 from utils import tokenizer
+from utils.config import force_gpt3
 
 engine = create_engine(config.connection_str)
 balance_repo = BalanceRepo(engine)
@@ -175,12 +176,16 @@ class ExplorerBot(OpenAIBot):
             return {"role":"user","content":message},{"role":"assistant","content":"你已经体验次数了哦，可以微信联系stephenliy 或者【登录】哈。"}
         return super().get_last_two_messages(message, history)
     def _get_model(self):
+        if force_gpt3:
+            return super()._get_model()
         return "gpt-4"
     def set_temperature(self,temperature):
         self.temperature = temperature
 
 class GPT4Bot(OpenAIBotWithMemory):
     def _get_model(self):
+        if force_gpt3:
+            return super()._get_model()
         return "gpt-4"
     def _get_temperature(self):
         return 1.0
@@ -205,4 +210,6 @@ class AssistantBot(OpenAIBot):
 
 class AssistantBotV2(AssistantBot):
     def _get_model(self):
+        if force_gpt3:
+            return super()._get_model()
         return "gpt-4"
