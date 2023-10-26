@@ -84,10 +84,14 @@ def clear_longterm_memroy(username, profilename):
 
 def save_longterm_memory_by_datetime(username, profilename, created_at):
     history = chat_history_repo.get_chat_history_by_name_before(username, profilename, created_at)
+    if history == []:
+        return
     save_longterm_memory(username, profilename, history)
     chat_history_repo.set_saved_flag_by_name_and_before(username, profilename, created_at)
 
 def save_longterm_memory(username, profilename, chat_history):
+    if chat_history == []:
+        return
     collection_name =generate_key_for_chat_memory(username, profilename)
     collection = get_collection(collection_name)
     id_prefix = uuid.uuid4()

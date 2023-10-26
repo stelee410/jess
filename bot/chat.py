@@ -196,8 +196,6 @@ class LoveBot(OpenAIBot):
         """
 
 class SimpleBot(OpenAIBot):
-    def __init__(self,initMsg,feeds, user_id, context ={}):
-        pass
     def getResponse(self,message="", history=[]):
         return {"role":"assistant","content":"此数字人尚未初始化，请联系管理员"}
     
