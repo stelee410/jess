@@ -15,7 +15,8 @@
                 <li><a class="nav-item nav-link" href="/profile/{{profile.name}}"><i class="fas fa-user-circle"></i>查看Profile</a></li>
                 {% endif %}
                 {% if support_memory %}
-                <li><a class="nav-item nav-link" onclick="clearAndSaveChatHistory()"><i class="fas fa-comment-dots"></i>新建聊天(回忆会留下)</a></li>
+                <li><a class="nav-item nav-link" onclick="clearAndSaveChatHistory()"><i class="fas fa-comment-dots"></i>新建聊天</a></li>
+                <li><a class="nav-item nav-link" onclick="resetChatHistory()"><i class="fas fa-window-restore"></i>重置记忆</a></li>
                 {% else %}
                 <li><a class="nav-item nav-link" onclick="clearChatHistory()"><i class="fas fa-comment"></i>新建聊天</a></li>
                 {% endif %}
@@ -212,6 +213,27 @@
                 $(".action_menu").toggle();
             }
         });
+    }
+    function resetChatHistory(){
+        $(".action_menu").toggle();
+        showModal('Confirm',
+        '你确认要重置你们的回忆吗？数字人将不再记得你们的聊天',
+        '确认',
+        function(){
+            url = '/reset-memory/{{profile.name}}';
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function(response){
+                    $("#chat-container").html("");  
+                    flash("已经成功重置了你们的回忆",'primary');
+                },
+                error: function(err){
+                    flash("服务器开小差了～",'warning');
+                }
+            });
+            closeModal();
+        },'danger')
     }
 </script>
 </div>

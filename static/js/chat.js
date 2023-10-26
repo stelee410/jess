@@ -82,3 +82,16 @@ function flash(message, alert_type) {
                     </div>';
     $('#main').append(alert_html);
 }
+function showModal(title, body, actionName, actionFn,actionBtnStyle='primary'){
+    $('#my-modal-label').html(title);
+    $('#my-modal-body').html(body);
+    $('#my-modal-action').text(actionName);
+    $('#my-modal-action').click(actionFn);
+    $('#my-modal-action').removeClass();
+    $('#my-modal-action').addClass('btn btn-'+actionBtnStyle);
+    $('#my-modal').modal('show');
+}
+
+function closeModal(){
+    $('#my-modal').modal('hide');
+}

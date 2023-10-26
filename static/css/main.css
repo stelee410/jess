@@ -459,3 +459,11 @@ footer {
     z-index: 10000;
     display: none;
 }
+
+.modal-title{
+    color: black;
+}
+
+.modal-body{
+    color:black
+}

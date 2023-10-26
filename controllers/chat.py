@@ -6,6 +6,7 @@ from utils import simple_login_required
 from bot.load_bot import if_support_memory
 import services.chat as chat_service
 import services.message as message_service
+from services import long_term_momory_service as ltm_service
 
 @app.route('/reset/<name>', methods=['GET'])
 @simple_login_required
@@ -16,6 +17,11 @@ def reset(name):
 @simple_login_required
 def reset_save(name):
     return Chat().reset_chat_history(name, True)
+
+@app.route('/reset-memory/<name>', methods=['GET'])
+@simple_login_required
+def reset_memory(name):
+    return Chat().reset_memory(name)
 
 @app.route('/share/<name>', methods=['GET'])
 @simple_login_required
@@ -48,6 +54,13 @@ class Chat(Base):
         chat_history_repo.reset_chat_history(username, profile_name)
         return self.redirect(f"/chat/{name}")
     
+    def reset_memory(self, name):
+        username = session.get('username')
+        profile_name = name
+        ltm_service.clear_longterm_memroy(username, profile_name)
+        self.reset_chat_history(name)
+        return {"message":"success"}
+
     def execute(self,name):
         username = session.get('username')
         avatar = session.get('avatar')

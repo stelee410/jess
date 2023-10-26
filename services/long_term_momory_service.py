@@ -75,6 +75,13 @@ def set_chat_memory(username, profilename, json_list):
     reset_blob(key)
     return get_chat_memory(username, profilename)
 
+def clear_longterm_memroy(username, profilename):
+    collection_name =generate_key_for_chat_memory(username, profilename)
+    try:
+        client.delete_collection(collection_name)
+    except ValueError as e:
+        print('collection not found for clear long term memory:',username, profilename)
+
 def save_longterm_memory_by_datetime(username, profilename, created_at):
     history = chat_history_repo.get_chat_history_by_name_before(username, profilename, created_at)
     save_longterm_memory(username, profilename, history)
