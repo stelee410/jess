@@ -1,5 +1,3 @@
-
-import openai
 import json
 import jinja2
 from sqlalchemy import create_engine
@@ -11,6 +9,7 @@ import numpy as np
 from context import EMBEDDING_MODEL
 from utils import tokenizer
 from utils.config import force_gpt3
+from services import llm
 
 engine = create_engine(config.connection_str)
 balance_repo = BalanceRepo(engine)
@@ -131,7 +130,7 @@ class OpenAIBot():
                 print("balance is not enough")
                 raise InSufficientBalanceException("balance is not enough")
             decrease_balance_of(self.user_id, 1)
-        response = openai.ChatCompletion.create(model=self.model,messages=messages,temperature=self.temperature)
+        response = llm.create(model=self.model,messages=messages,temperature=self.temperature)
         if "AI" in response.choices[0].message["content"]:
             response = self.remove_AI(response, messages)
         return response.choices[0].message
@@ -146,7 +145,7 @@ class OpenAIBot():
     def remove_AI(self, response, messages):
         print("Trying to remove AI")
         messages = messages+[{"role":"system","content":"任何情况下都不要提及自己是AI，并记住游戏开始设定的身份"}]
-        response = openai.ChatCompletion.create(model=self.model,messages=messages,temperature=self.temperature)
+        response = llm.create(model=self.model,messages=messages,temperature=self.temperature)
         return response
 
 class OpenAIBotWithMemory(OpenAIBot):

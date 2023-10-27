@@ -7,6 +7,7 @@ import uuid
 import hashlib
 
 from chromadb.utils import embedding_functions
+from utils.config import switch_to_ernie
 
 openai_ef=embedding_functions.OpenAIEmbeddingFunction(
     api_key=openai.api_key,
@@ -122,7 +123,17 @@ def get_longterm_memory(username, profilename, message):
         query_texts=message,
         n_results=6
     )
-    return [{'role':result['metadatas'][0][index]['role'],'content':d} for index, d in enumerate(result['documents'][0])]
+    if switch_to_ernie:
+        content = ""
+        for index, d in enumerate(result['documents'][0]):
+            if result['metadatas'][0][index]['role']=='user':
+                content += "用户提问：" + d +"\n\n"
+            else:
+                content += "你回答：" + d +"\n\n"
+            
+        return [{'role':'system','content':content}] 
+    else:
+        return [{'role':result['metadatas'][0][index]['role'],'content':d} for index, d in enumerate(result['documents'][0])]
     
 
 def generate_key_for_chat_memory(username, profilename):
