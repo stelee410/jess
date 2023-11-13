@@ -52,7 +52,7 @@ class Explorer(Base):
 你好，我是你的引导员，你可以通过跟我对话了解这个平台，试试问问怎么注册或者怎么登录吧～
     """
             history = [{"role":"assistant","content":prompt}]
-        self.flash("灵芸网站将迎来从页面到功能的重大更新，届时也将正式上线，敬请期待！")
+        #self.flash("灵芸网站将迎来从页面到功能的重大更新，届时也将正式上线，敬请期待！")
         return self.render('explorer.html', form=form, \
                            history=history,show_ads = showAds,\
                             history_len=len(history), action=action, params=params,\
