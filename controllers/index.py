@@ -9,10 +9,15 @@ from forms import LoginForm, UserForm
 import os
 import time
 
+
 @app.route('/', methods=['GET'])
 @simple_login_required
 def index():
     return IndexController().execute()
+
+@app.route('/ping', methods=['GET'])
+def ping():
+    return IndexController().ping()
 
 @app.route('/login', methods=['GET','POST'])
 def login():
@@ -87,6 +92,9 @@ class IndexController(Base):
                 set_session_user(user)
                 return self.redirect("/")
         return self.render("login.html", form=form)
+    def ping(self):
+        return {"message":"pong"}
+    
     def execute(self):
         username = session.get('username')
         profile_list = profile_repo.get_ordered_profile_list(username)
