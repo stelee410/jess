@@ -7,6 +7,11 @@ from werkzeug.utils import secure_filename
 import os
 import time
 
+@app.route('/api/profiles/recently_chat', methods=['GET'])
+@simple_login_required
+def profiles_recently_chat():
+    return ProfileController().profiles_recently_chat()
+
 @app.route('/profile/<name>', methods=['GET','POST'])
 @simple_login_required
 def profile(name):
@@ -40,6 +45,8 @@ def delete(name):
 @simple_login_required
 def set_profile_scope(name, scope_str):
     return ProfileController().set_scope(name, scope_str)
+
+
 
 class ProfileController(Base):
     def set_scope(self, name, scope_str):
@@ -113,6 +120,9 @@ class ProfileController(Base):
             profile_repo.add(data,session.get('username'))
             return self.redirect("/profile/"+data['name'])
         return self.render("new_profile.html", form=form)
+    def profiles_recently_chat(self):
+        profiles_list = profile_repo.get_recent_profile_list(session.get('username'))
+        return {'data':[profile.to_json() for profile in profiles_list]}
     
     def execute(self,name):
         form = ProfileUpdateForm()

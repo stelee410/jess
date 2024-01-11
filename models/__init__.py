@@ -32,6 +32,18 @@ class Profile(Base):
     deleted = sa.Column(sa.Integer, nullable=False)
     owned_by = sa.Column(sa.String(100), nullable=False)
     scope = sa.Column(sa.Integer, nullable=False)
+    def to_json(self):
+        return {
+            'name': self.name,
+            'displayName': self.displayName,
+            'avatar': self.avatar,
+            'bot': self.bot,
+            'short_description': self.short_description,
+            'offline': self.offline,
+            'deleted': self.deleted,
+            'owned_by': self.owned_by,
+            'scope': self.scope
+        }
 
 class User(Base):
     __tablename__ = 'user'

@@ -19,9 +19,21 @@ def index():
 def ping():
     return IndexController().ping()
 
+@csrf.exempt
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    username = request.json.get('username')
+    password = request.json.get('password')
+    return IndexController().api_login(username, password)
+
 @app.route('/login', methods=['GET','POST'])
 def login():
     return IndexController().login()
+
+
+@app.route('/api/logout', methods=['GET'])
+def logout_():
+   return IndexController().logout()
 
 @app.route('/logout', methods=['GET'])
 @simple_login_required
@@ -32,6 +44,10 @@ def logout():
 @simple_login_required
 def my():
     return IndexController().my()
+
+@app.route('/api/is_login', methods=['GET'])
+def is_login():
+    return IndexController().is_login()
 
 class IndexController(Base):
     def my(self):
@@ -77,6 +93,21 @@ class IndexController(Base):
         empty_session_user()
         return self.redirect("/login")
     
+    def api_login(self, username, password):
+        password_hash = get_password_hash(password,app.secret_key)
+        user = user_repo.get_user_by_username_password(username, password_hash)
+        if user is None:
+            return self.json({
+                'success': False,
+                'message': 'username or password error'
+            })
+        else:
+            set_session_user(user)
+            return self.json({
+                'success': True,
+                'message': 'login success'
+            })
+    
     def login(self):
         form = LoginForm()
         if form.validate_on_submit():
@@ -95,6 +126,17 @@ class IndexController(Base):
     def ping(self):
         return {"message":"pong"}
     
+    def is_login(self):
+        if session.get('username') is not None:
+            return self.json({
+                'is_login': True,
+                'username':  session.get('username') 
+            })
+        else:
+            return self.json({
+                'is_login': False,
+                'username': None
+            })
     def execute(self):
         username = session.get('username')
         profile_list = profile_repo.get_ordered_profile_list(username)

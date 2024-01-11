@@ -4,7 +4,7 @@ from models import ChatHistory, Profile,User,User_Profile_Rel,Balance,Message,Sh
 from models import SCOPE_PRIVATE,SCOPE_PUBLIC
 from sqlalchemy.orm import Session
 from sqlalchemy import select,delete,update,and_, or_, func
-from sqlalchemy.orm import outerjoin
+from sqlalchemy.orm import outerjoin, join
 import logging
 
 PROFILE_SCOPE_PUBLIC = SCOPE_PUBLIC
@@ -210,6 +210,17 @@ class ProfileRepo():
         query = (
             session.query(Profile)
             .outerjoin(User_Profile_Rel,and_(Profile.name==User_Profile_Rel.profile_name,User_Profile_Rel.username==username))
+            .filter(Profile.deleted==0)
+            .filter(Profile.scope==SCOPE_PUBLIC)
+            .order_by(User_Profile_Rel.last_chat_at.desc())
+        )
+        return query.all()
+    
+    def get_recent_profile_list(self, username):
+        session = Session(self.engine)
+        query = (
+            session.query(Profile)
+            .join(User_Profile_Rel,and_(Profile.name==User_Profile_Rel.profile_name,User_Profile_Rel.username==username))
             .filter(Profile.deleted==0)
             .filter(Profile.scope==SCOPE_PUBLIC)
             .order_by(User_Profile_Rel.last_chat_at.desc())
