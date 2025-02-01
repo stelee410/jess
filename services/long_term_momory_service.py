@@ -9,10 +9,14 @@ import hashlib
 from chromadb.utils import embedding_functions
 from utils.config import switch_to_ernie
 
-openai_ef=embedding_functions.OpenAIEmbeddingFunction(
-    api_key=openai.api_key,
-    model_name=EMBEDDING_MODEL
-)
+try:
+    openai_ef = embedding_functions.OpenAIEmbeddingFunction(
+        api_key=openai.api_key,
+        model_name=EMBEDDING_MODEL
+    )
+except Exception as e:
+    print(f"Error initializing OpenAI embedding function: {str(e)}")
+    # 可以设置一个备用的嵌入函数或者抛出异常
 
 def get_collection(collection_name):
     return client.get_or_create_collection(
@@ -117,23 +121,29 @@ def save_longterm_memory(username, profilename, chat_history):
         ids=ids
     )
 def get_longterm_memory(username, profilename, message):
-    collection_name =generate_key_for_chat_memory(username, profilename)
-    collection = get_collection(collection_name)
-    result = collection.query(
-        query_texts=message,
-        n_results=6
-    )
-    if switch_to_ernie:
-        content = ""
-        for index, d in enumerate(result['documents'][0]):
-            if result['metadatas'][0][index]['role']=='user':
-                content += "用户提问：" + d +"\n\n"
-            else:
-                content += "你回答：" + d +"\n\n"
-            
-        return [{'role':'system','content':content}] 
-    else:
-        return [{'role':result['metadatas'][0][index]['role'],'content':d} for index, d in enumerate(result['documents'][0])]
+    try:
+        collection_name = generate_key_for_chat_memory(username, profilename)
+        collection = get_collection(collection_name)
+        result = collection.query(
+            query_texts=message,
+            n_results=6
+        )
+        
+        if switch_to_ernie:
+            content = ""
+            for index, d in enumerate(result['documents'][0]):
+                if result['metadatas'][0][index]['role']=='user':
+                    content += "用户提问：" + d +"\n\n"
+                else:
+                    content += "你回答：" + d +"\n\n"
+                
+            return [{'role':'system','content':content}] 
+        else:
+            return [{'role':result['metadatas'][0][index]['role'],'content':d} for index, d in enumerate(result['documents'][0])]
+    except Exception as e:
+        print(f"Error in get_longterm_memory: {str(e)}")
+        # 如果查询失败，返回空列表，确保不影响主流程
+        return []
     
 
 def generate_key_for_chat_memory(username, profilename):

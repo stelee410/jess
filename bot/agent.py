@@ -1,4 +1,6 @@
-import openai
+from openai import OpenAI
+
+client = OpenAI()
 
 class Agent():
     def __init__(self, method_name, args_list) -> None:
@@ -11,12 +13,12 @@ class Agent():
 """
         prompt += ','.join(args_list)
         self.system_prompt = prompt
-    
+
     def getResponse(self, messages):
         new_messages = messages.copy()
         initMsg = [{"role":"system","content":self.system_prompt}]
         new_messages.append({"role":"user","content":"输出参数"})
-        response = openai.ChatCompletion.create(model=self.model,messages= initMsg + new_messages,temperature=self.temperature)
-        return response.choices[0].message["content"]
+        response = client.chat.completions.create(model=self.model,messages= initMsg + new_messages,temperature=self.temperature)
+        return response.choices[0].message.content
     def get_method_name(self):
         return self.method_name

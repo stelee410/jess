@@ -15,6 +15,8 @@ from context import *
 import os
 import json
 
+print("connecting to database...")
+
 engine = create_engine(config.connection_str)
 
 def forward_chat_history(admin):
