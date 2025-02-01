@@ -38,7 +38,7 @@ def _generate_qr_code_url_for_friend_sharing(link, avatar_url='./static/images/d
  
     # adding URL or text to QRcode
     QRcode.add_data(url)
-    
+    print(url)    
     # generating QR code
     QRcode.make()
     
