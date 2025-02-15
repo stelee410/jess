@@ -1,5 +1,6 @@
-from context import *
+from .__inner__ import api
 
-@app.route('/api/v1/ping', endpoint='v1_ping') 
+@api.route('ping', endpoint='v1_ping') 
 def ping():
     return {"message": "pong"} 
+
