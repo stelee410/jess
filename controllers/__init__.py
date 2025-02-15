@@ -8,4 +8,4 @@ from .profile import ProfileController
 from .message import MessageController
 from .friend_share import FriendShareController
 from .admin import AdminController
-from .api import ApiController
+from .v1 import *
