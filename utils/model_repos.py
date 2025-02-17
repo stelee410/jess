@@ -224,6 +224,7 @@ class ProfileRepo():
             .filter(Profile.deleted==0)
             .filter(Profile.scope==SCOPE_PUBLIC)
             .order_by(User_Profile_Rel.last_chat_at.desc())
+            .limit(8)
         )
         return query.all()
     

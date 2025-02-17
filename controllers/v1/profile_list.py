@@ -1,4 +1,6 @@
 from .__inner__ import api
+from context import *
+from utils.config import base_url
 
 def build_profile(name,displayName,avatar,description):
     return {
@@ -11,21 +13,27 @@ def build_profile(name,displayName,avatar,description):
 #TODO: 最近聊天列表
 @api.route('recent-chat') 
 def recent_chat():
-    return [
-          build_profile(name='jess',displayName='Jess C', avatar='/samples/sample.png',description='Snowy mountain peak under a starry night sky.'),
-          build_profile(name='catty',displayName='Catty', avatar='/samples/sample2.png',description='Desert oasis with camels and a vibrant sunset.'),
-          build_profile(name='yuki',displayName='Yuki', avatar='/samples/sample3.png',description='Lighthouse on a rocky coast during a storm.'),
-          build_profile(name='elle',displayName='Elle', avatar='/samples/sample4.jpg',description='Cherry blossoms by a serene lake in spring.'),
-          build_profile(name='jessica',displayName='Jessica', avatar='/samples/sample5.jpg',description='Ancient castle ruins under a full moon.')
-    ]
+    username = session['username']
+    if not username:
+        return {
+            'code':401,
+            'message':'user is not login'
+        }
+    profiles_list = profile_repo.get_recent_profile_list(session.get('username'))
+    return [{
+        'name':profile.name,
+        'displayName':profile.displayName,
+        'avatar':f'{base_url}static/{profile.avatar}',
+        'description':profile.short_description
+    }for profile in profiles_list]
 
 #TODO: 推荐聊天列表
 @api.route('recommend-chat') 
 def recommend_chat():
-    return [
-          build_profile(name='jess',displayName='Jess C', avatar='/samples/sample.png',description='Snowy mountain peak under a starry night sky.'),
-          build_profile(name='catty',displayName='Catty', avatar='/samples/sample2.png',description='Desert oasis with camels and a vibrant sunset.'),
-          build_profile(name='yuki',displayName='Yuki', avatar='/samples/sample3.png',description='Lighthouse on a rocky coast during a storm.'),
-          build_profile(name='elle',displayName='Elle', avatar='/samples/sample4.jpg',description='Cherry blossoms by a serene lake in spring.'),
-          build_profile(name='jessica',displayName='Jessica', avatar='/samples/sample5.jpg',description='Ancient castle ruins under a full moon.')
-    ]
+    profiles_list = profile_repo.get_profile_list()
+    return [{
+        'name':profile.name,
+        'displayName':profile.displayName,
+        'avatar':f'{base_url}static/{profile.avatar}',
+        'description':profile.short_description
+    }for profile in profiles_list]
