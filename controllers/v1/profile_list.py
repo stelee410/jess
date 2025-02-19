@@ -1,7 +1,7 @@
 from .__inner__ import api
 from context import *
 from utils.config import base_url
-
+from utils import simple_login_required
 def build_profile(name,displayName,avatar,description):
     return {
         'name': name,
@@ -12,6 +12,7 @@ def build_profile(name,displayName,avatar,description):
 
 #TODO: 最近聊天列表
 @api.route('recent-chat') 
+@simple_login_required
 def recent_chat():
     username = session['username']
     if not username:
@@ -29,6 +30,7 @@ def recent_chat():
 
 #TODO: 推荐聊天列表
 @api.route('recommend-chat') 
+@simple_login_required
 def recommend_chat():
     profiles_list = profile_repo.get_profile_list()
     return [{
