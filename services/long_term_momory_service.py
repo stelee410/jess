@@ -95,31 +95,37 @@ def save_longterm_memory_by_datetime(username, profilename, created_at):
     chat_history_repo.set_saved_flag_by_name_and_before(username, profilename, created_at)
 
 def save_longterm_memory(username, profilename, chat_history):
-    if chat_history == []:
+    if not chat_history:
         return
-    collection_name =generate_key_for_chat_memory(username, profilename)
-    collection = get_collection(collection_name)
-    id_prefix = uuid.uuid4()
-    documents = []
-    metadatas = []
-    ids = []
-    index = 0
-    embeddings = []
-    for chat in chat_history:
-        documents.append(chat['content'])
-        metadatas.append({"role":chat['role']})
-        ids.append(f"{id_prefix}-{index}")
-        index = index+1
-        if 'embedding' in chat:
-            embeddings.append(chat['embedding'])
-    if embeddings == []:
-        embeddings = None
-    collection.add(
-        embeddings=embeddings,
-        documents = documents,
-        metadatas = metadatas,
-        ids=ids
-    )
+    try:
+        collection_name = generate_key_for_chat_memory(username, profilename)
+        collection = get_collection(collection_name)
+        id_prefix = uuid.uuid4()
+        documents = []
+        metadatas = []
+        ids = []
+        
+        for index, chat in enumerate(chat_history):
+            if not chat.get('content'):  # 跳过空内容
+                continue
+            documents.append(chat['content'])
+            metadatas.append({"role": chat['role']})
+            ids.append(f"{id_prefix}-{index}")
+        
+        if not documents:  # 如果没有有效文档，直接返回
+            return
+            
+        collection.add(
+            documents=documents,
+            metadatas=metadatas,
+            ids=ids,
+            embeddings=None  # 让 embedding_function 自动处理嵌入
+        )
+    except Exception as e:
+        print(f"Error saving to long term memory: {str(e)}")
+        # 可以选择重新抛出异常或者静默处理
+        # raise
+
 def get_longterm_memory(username, profilename, message):
     try:
         collection_name = generate_key_for_chat_memory(username, profilename)
