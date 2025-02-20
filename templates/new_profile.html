@@ -6,14 +6,14 @@
         <a href="/">
             <img class="icon" src="{{ url_for('static', filename='images/return@2x.png') }}" alt="return-button"  ></button>
         </a>
-        <div>创建新的数字人</div>
+        <div>Create New AI Agent</div>
     </div>
 
     <div id="profile-container" class="text-black">
         {{render_form(form)}}
     </div>
     <div class="chat-input-container">
-        <input type="submit" value="更新" class="btn btn-primary" onclick="$('form').submit()"/>
+        <input type="submit" value="Update" class="btn btn-primary" onclick="$('form').submit()"/>
     </div>
 </div>
 {% endblock %}

@@ -44,19 +44,19 @@ class MessageController(Base):
         if username is None:
             return self.redirect('/login')
         message_repo.mark_read(message_id)
-        return self.redirect('/messages/all')
+        return self.redirect('/legacy/messages/all')
     
     def mark_delete(self, username, message_id):
         if username is None:
             return self.redirect('/login')
         message_repo.mark_delete(message_id)
-        return self.redirect('/messages/all')
+        return self.redirect('/legacy/messages/all')
     
     def mark_archive(self, username, message_id):
         if username is None:
             return self.redirect('/login')
         message_repo.mark_archive(message_id)
-        return self.redirect('/messages/archived')
+        return self.redirect('/legacy/messages/archived')
 
     def show_message(self,username, message_id):
         if username is None:
@@ -64,7 +64,7 @@ class MessageController(Base):
         message = message_repo.get_message_by_id_reciever(message_id,username)
         line_data = []
         if message is None:
-            return self.redirect('/messages')
+            return self.redirect('/legacy/messages')
         else:
             line_data = message.message.splitlines()
         if message.status == 0:

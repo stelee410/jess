@@ -60,7 +60,7 @@
         text-align: left;
     }
 </style>
-<h4 id="subheader">编辑设定和会话</h4>
+<h4 id="subheader">Edit Settings and Conversation</h4>
 <hr/>
 <div class="container" id="submenu">
     <div class="row">
@@ -74,20 +74,20 @@
         </div>
         <div class="col-md-9" id="submenu-item">
             |
-            <a  href="/" class="btn btn-primary">回到首页</a>&nbsp;
-            <a  href="/profile/{{profile.name}}" class="btn btn-secondary">返回</a>&nbsp;
-            <a  href="/chat/{{profile.name}}" class="btn btn-success">聊天</a>&nbsp;
-            <input type="button" class="btn btn-warning" value="保存" onclick="saveChat()">&nbsp;
+            <a  href="/" class="btn btn-primary">Main</a>&nbsp;
+            <a  href="/legacy/profile/{{profile.name}}" class="btn btn-secondary">Back</a>&nbsp;
+            <a  href="/main/chat/{{profile.name}}" class="btn btn-success">Chat</a>&nbsp;
+            <input type="button" class="btn btn-warning" value="Save" onclick="saveChat()">&nbsp;
             
             &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
-            <input type="button" class="btn btn-danger" value="测试" onclick="startChat()">
+            <input type="button" class="btn btn-danger" value="Test" onclick="startChat()">
         </div>
     </div>
 </div>
 <div class="container">
     <div class="row">
       <div class="col-md-4">
-        <h4>设定</h4>
+        <h4>Description(Prompt)</h4>
         <textarea class="form-control chat-set-textarea" rows="20" id="profile_description">{{profile.description}}</textarea>
       </div>
 
@@ -120,17 +120,17 @@
         {% endfor %}
         
         <div id="toolbar">
-            <input type="button" class="btn btn-danger" value="测试" onclick="startChat()">
-            <input type="button" class="btn btn-primary" value="添加" onclick="addChat()">
+            <input type="button" class="btn btn-danger" value="Test" onclick="startChat()">
+            <input type="button" class="btn btn-primary" value="Add" onclick="addChat()">
         </div>
       </div>
 
       <div class="col-md-2">
-        <h4>设置</h4>
+        <h4>Settings</h4>
         <div class="mb-3">
-          <label for="model-select" class="form-label">选择模型</label>
+          <label for="model-select" class="form-label">Choose Model</label>
           <select class="form-select" id="model-select">
-            <option>选择模型
+            <option>Choose Model
             </option>
             {% for model in model_list %}
                 {% if model[0] == profile.bot %}
@@ -142,7 +142,7 @@
           </select>
         </div>
         <div class="mb-3" style="display:none" id="var_panel">
-            <h4>变量(JSON格式)</h4>
+            <h4>var(JSON格式)</h4>
             <textarea class="form-control chat-set-textarea" rows="10" name="var" id="var">
                 {
                     "username":"{{user_name}}",
@@ -263,7 +263,7 @@ function wrapInputTrigger($obj){
     $obj.on('input', detectCodeSnippet);
 }
 function saveChat(){
-    if(!confirm("当前设定将保存到服务器上，是否继续？")){
+    if(!confirm("Are you sure to save the settings and conversation?")){
         return;
     }
     description = $("#profile_description").val();
@@ -287,11 +287,11 @@ function saveChat(){
         profile_name: "{{profile.name}}",
     }
     $.ajax({
-        url: '/api/savechatdev',
+        url: '/legacy/api/savechatdev',
         type: 'POST',
         data: data,
         success: function(response){
-            alert("保存成功");
+            alert("Save successfully");
         },
         error: function(err){
             alert(err.responseText);
@@ -322,7 +322,7 @@ function startChat(){
         profile_name: "{{profile.name}}",
     }
     $.ajax({
-        url: '/api/chatdev',
+        url: '/legacy/api/chatdev',
         type: 'POST',
         data: data,
         success: function(response){
@@ -333,7 +333,7 @@ function startChat(){
         },
         error: function(err){
             if(err.responseText.indexOf('balance is not enough')>=0){
-                alert("余额不足，请充值");
+                alert("balance is not enough");
             }else{
                 alert(err.responseText);
             }

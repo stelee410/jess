@@ -68,7 +68,7 @@ class ProfileController(Base):
         if profile.owned_by != session.get('username'):
             return self.render("500.html", message=f"Profile {name} not owned by {session.get('username')}")
         if form.validate_on_submit():
-            if form.username.data == "我确认删除这个数字人":
+            if form.username.data == "Confirmed":
                 profile_repo.delete_profile(name)
                 return self.redirect("/")
             else:
@@ -118,7 +118,7 @@ class ProfileController(Base):
                     file.save(os.path.join('./static/profiles', filename))
                     data['avatar'] = f"profiles/{filename}"
             profile_repo.add(data,session.get('username'))
-            return self.redirect("/profile/"+data['name'])
+            return self.redirect("/legacy/profile/"+data['name'])
         return self.render("new_profile.html", form=form)
     def profiles_recently_chat(self):
         profiles_list = profile_repo.get_recent_profile_list(session.get('username'))

@@ -25,12 +25,12 @@
         <div class="col-md-2">
             <ul>
                 {% if unread_messages_num > 0 %}
-                <li><a href="/messages" style="font-weight: bold;">未读信息({{unread_messages_num}})</a></li>
+                <li><a href="/legacy/messages" style="font-weight: bold;">未读信息({{unread_messages_num}})</a></li>
                 {% else %}
-                <li><a href="/messages">未读信息({{unread_messages_num}})</a></li>
+                <li><a href="/legacy/messages">未读信息({{unread_messages_num}})</a></li>
                 {% endif %}
-                <li><a href="/messages/all">所有信息</a></li>
-                <li><a href="/messages/archived">已存档信息</a></li>
+                <li><a href="/legacy/messages/all">所有信息</a></li>
+                <li><a href="/legacy/messages/archived">已存档信息</a></li>
             </ul>
         </div>
         <div class="col-md-8" id="submenu-desc">

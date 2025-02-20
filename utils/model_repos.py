@@ -219,10 +219,13 @@ class ProfileRepo():
     def get_recent_profile_list(self, username):
         session = Session(self.engine)
         query = (
-            session.query(Profile)
+            session.query(Profile,User_Profile_Rel.last_chat_at)
             .join(User_Profile_Rel,and_(Profile.name==User_Profile_Rel.profile_name,User_Profile_Rel.username==username))
             .filter(Profile.deleted==0)
-            .filter(Profile.scope==SCOPE_PUBLIC)
+             .filter(or_(
+                Profile.scope==SCOPE_PUBLIC,
+                and_(Profile.scope==SCOPE_PRIVATE, Profile.owned_by==username)
+            ))
             .order_by(User_Profile_Rel.last_chat_at.desc())
             .limit(8)
         )

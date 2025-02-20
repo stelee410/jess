@@ -16,15 +16,15 @@ class ReigsterForm(FlaskForm):
     submit = SubmitField('保存',render_kw={"class":'single-btn',"style":'margin-left:0px'})
 
 class ProfileForm(FlaskForm):
-    name = StringField(label="唯一数字人ID", validators=[DataRequired(), Length(1, 20)])
-    displayName = StringField(label="姓名", validators=[DataRequired(), Length(1, 20)])
-    avatar = FileField(label="头像", validators=[FileRequired(), FileAllowed(ALLOWED_EXTENSIONS, 'Images only!')])
-    short_description = TextAreaField(label="描述（不影响设定）", validators=[Length(0, 2048)], render_kw={"rows":"6"})
+    name = StringField(label="Unique ID", validators=[DataRequired(), Length(1, 20)])
+    displayName = StringField(label=" Name", validators=[DataRequired(), Length(1, 20)])
+    avatar = FileField(label="Avatar", validators=[FileRequired(), FileAllowed(ALLOWED_EXTENSIONS, 'Images only!')])
+    short_description = TextAreaField(label="Description(not affect settings)", validators=[Length(0, 2048)], render_kw={"rows":"6"})
 
 class ProfileUpdateForm(FlaskForm):
-    displayName = StringField(label="昵称", validators=[DataRequired(), Length(1, 20)])
-    avatar = FileField(label="头像", validators=[FileAllowed(ALLOWED_EXTENSIONS, 'Images only!')])
-    short_description = TextAreaField(label="描述（不影响设定）", validators=[Length(0, 2048)], render_kw={"rows":"6"})
+    displayName = StringField(label="Name", validators=[DataRequired(), Length(1, 20)])
+    avatar = FileField(label="Avatar", validators=[FileAllowed(ALLOWED_EXTENSIONS, 'Images only!')])
+    short_description = TextAreaField(label="Description(not affect settings)", validators=[Length(0, 2048)], render_kw={"rows":"6"})
 
 class LoginForm(FlaskForm):
     username = StringField(label="用户名", validators=[DataRequired(), Length(1, 20)])
@@ -32,15 +32,15 @@ class LoginForm(FlaskForm):
     submit = SubmitField('登录')
 
 class TransferForm(FlaskForm):
-    username = StringField(label="对方用户名", validators=[DataRequired(), Length(1, 10)])
-    submit = SubmitField('发送')
+    username = StringField(label="Other User Name", validators=[DataRequired(), Length(1, 10)])
+    submit = SubmitField('Send')
 class DeleteForm(FlaskForm):
-    username = StringField(label='请输入“我确认删除这个数字人”', validators=[DataRequired(), Length(1, 10)])
-    submit = SubmitField('发送')
+    username = StringField(label='Please enter "Confirmed"', validators=[DataRequired(), Length(1, 10)])
+    submit = SubmitField('Send')
 
 class UserForm(FlaskForm):
-    displayName = StringField(label="昵称", validators=[DataRequired(), Length(1, 20)])
-    avatar = FileField(label="头像", validators=[FileAllowed(ALLOWED_EXTENSIONS, 'Images only!')])
+    displayName = StringField(label="Name", validators=[DataRequired(), Length(1, 20)])
+    avatar = FileField(label="Avatar", validators=[FileAllowed(ALLOWED_EXTENSIONS, 'Images only!')])
     description = TextAreaField(label="描述", validators=[Length(0, 2048)], render_kw={"rows":"10"})
     password = PasswordField(label="旧密码", validators=[Length(0, 20)])
     password_new = PasswordField(label="新密码", validators=[Length(0, 20)])
