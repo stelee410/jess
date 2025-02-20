@@ -10,7 +10,7 @@ def build_profile(name,displayName,avatar,description):
         'description': description
     }
 
-#TODO: 最近聊天列表
+
 @api.route('recent-chat') 
 @simple_login_required
 def recent_chat():
@@ -28,7 +28,6 @@ def recent_chat():
         'description':profile.short_description
     }for profile in profiles_list]
 
-#TODO: 推荐聊天列表
 @api.route('recommend-chat') 
 @simple_login_required
 def recommend_chat():

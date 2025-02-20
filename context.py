@@ -28,7 +28,7 @@ app.secret_key = config.secret_key
 bootstrap = Bootstrap5(app)
 csrf = CSRFProtect(app)
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif','JPG', 'JPEG', 'PNG', 'GIF','webp','WEBP'}
-EMBEDDING_MODEL = "text-embedding-ada-002"
+EMBEDDING_MODEL = "text-embedding-3-small"
 
 cache = {} #memory cache for other purpose, it was supposed to used in vector data store, but I have moved to use chroma instead
 

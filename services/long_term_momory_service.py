@@ -11,7 +11,6 @@ from utils.config import switch_to_ernie
 
 try:
     openai_ef = embedding_functions.OpenAIEmbeddingFunction(
-        api_key=openai.api_key,
         model_name=EMBEDDING_MODEL
     )
 except Exception as e:
