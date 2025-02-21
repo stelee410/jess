@@ -34,7 +34,7 @@ def _generate_qr_code_url_for_friend_sharing(link, avatar_url='./static/images/d
     QRcode = qrcode.QRCode(
         error_correction=qrcode.constants.ERROR_CORRECT_H
     )
-    url = f'https://linkyun.co/friend/chat/{link}'
+    url = f'{base_url}/legacy/friend/chat/{link}'
  
     # adding URL or text to QRcode
     QRcode.add_data(url)

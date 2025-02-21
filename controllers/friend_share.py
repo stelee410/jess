@@ -105,4 +105,4 @@ class FriendShareController(Base):
        profile_name = request.form.get('profile_name')
        extra_description = request.form.get('message')
        link = generate_link_and_qr_code_for_friend_sharing(username, profile_name, extra_description)
-       return {"link":link,"share_url":f"{base_url}friend/chat/{link}"}
+       return {"link":link,"share_url":f"{base_url}legacy/friend/chat/{link}"}
