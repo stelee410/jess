@@ -19,16 +19,16 @@
         color: wheat;
     }
 </style>
-<h4 id="submenu">个人中心</h4>
+<h4 id="submenu">My Account</h4>
 <hr/>
 <div class="login-form-container container">
     {{render_form(form)}}
 </div>
 <p>
-    <input class="btn btn-info btn-md single-btn" value = "保存" onclick="submit()"/>
+    <input class="btn btn-info btn-md single-btn" value = "Save" onclick="submit()"/>
     </p>
 <p>
-<a href="/logout" class="btn btn-danger btn-md single-btn">登出</a>
+<a href="/legacy/logout" class="btn btn-danger btn-md single-btn">Logout</a>
 </p>
 <script lang="javascript">
     function submit(){

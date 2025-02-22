@@ -41,7 +41,8 @@ class DeleteForm(FlaskForm):
 class UserForm(FlaskForm):
     displayName = StringField(label="Name", validators=[DataRequired(), Length(1, 20)])
     avatar = FileField(label="Avatar", validators=[FileAllowed(ALLOWED_EXTENSIONS, 'Images only!')])
-    description = TextAreaField(label="描述", validators=[Length(0, 2048)], render_kw={"rows":"10"})
-    password = PasswordField(label="旧密码", validators=[Length(0, 20)])
-    password_new = PasswordField(label="新密码", validators=[Length(0, 20)])
-    password_new_confirm = PasswordField(label="确认密码", validators=[Length(0, 20)])
+    balance = StringField(label="Balance", validators=[Length(0, 20)],render_kw={"readonly": True})
+    description = TextAreaField(label="Description", validators=[Length(0, 2048)], render_kw={"rows":"10"})
+    password = PasswordField(label="Old password", validators=[Length(0, 20)])
+    password_new = PasswordField(label="New password", validators=[Length(0, 20)])
+    password_new_confirm = PasswordField(label="Confirm new password", validators=[Length(0, 20)])

@@ -54,6 +54,7 @@ class IndexController(Base):
         username = session.get('username')
         user = user_repo.get_user_by_username(username)
         set_session_user(user)
+        balance = balance_repo.get_balance_by_user_id(user.id)
 
         form = UserForm()
         if form.validate_on_submit():
@@ -76,17 +77,18 @@ class IndexController(Base):
                 password_hashed = get_password_hash(form.password.data,app.secret_key)
                 new_password_hashed = get_password_hash(form.password_new.data,app.secret_key)
                 if user.password != password_hashed:
-                    self.flash('旧密码错误')
+                    self.flash('old password is wrong')
                     return self.render('my.html', form = form)
                 if form.password_new.data != form.password_new_confirm.data:
-                    self.flash('两次输入的密码不一致')
+                    self.flash('two passwords are not the same')
                     return self.render('my.html', form = form)
                 user_repo.update_password(username,password_hashed,new_password_hashed)
 
-            return self.redirect("/my")
+            return self.redirect("/legacy/my")
         else:
             form.displayName.data = user.displayName
             form.description.data = user.description
+            form.balance.data = balance
         return self.render('my.html', form = form)
     
     def logout(self):

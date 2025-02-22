@@ -126,7 +126,7 @@
         data['content'] =  user_input;
         data['link']= "{{link}}";
         $.ajax({
-            url: '/friend/api/chat',
+            url: '/legacy/friend/api/chat',
             type: 'POST',
             data: data,
             success: function(response){
@@ -161,7 +161,7 @@
       $("#content").removeAttr('disabled');
     });
     function clearChatHistory(){
-        url = "/friend/reset_chat";
+        url = "/legacy/friend/reset_chat";
         $.ajax({
             url: url,
             type: 'GET',
@@ -177,7 +177,7 @@
         });
     }
     function shareChatHistory(){
-        url = "/friend/api/share/{{link}}";
+        url = "/legacy/friend/api/share/{{link}}";
         $.ajax({
             url: url,
             type: 'GET',

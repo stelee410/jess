@@ -42,8 +42,4 @@ def set_session_user(user):
     session['avatar'] = user.avatar
 
 def empty_session_user():
-    session['username'] = None
-    session['displayName'] = None
-    session['avatar'] = None
-    session['orignal_username'] = None
-
+    session.clear()
