@@ -43,7 +43,7 @@ def format_out_chat_history(from_,to_,profile_name,check_owner=True):
         return "profile not owned by you"
     user = user_repo.get_user_by_username(from_)
     chat_history = _get_chat_history(from_,user.displayName, profile_name, profile.displayName)
-    msg = """亲爱的数字人 {{profile_display_name}}({{profile_name}}) 用户, {{user_display_name}}({{from_}}) 想要和你分享TA与数字人的聊天, 以下是他们的聊天记录:
+    msg = """Dear {{profile_display_name}}({{profile_name}}) user, {{user_display_name}}({{from_}}) wants to share the following chat history with you:
 -----
 
 {% for chat in chat_history %}

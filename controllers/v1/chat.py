@@ -6,6 +6,7 @@ from utils.model_repos import PROFILE_SCOPE_PRIVATE
 from bot.chat import InSufficientBalanceException
 import services.chat as chat_service
 import services.message as message_service
+from services import long_term_momory_service as ltm_service
 
 @api.route('available-menus/<profileName>')
 @simple_login_required
@@ -106,3 +107,34 @@ def newChat(profileName):
         'success': True,
         'message': "Chat history reset"
     }
+
+@api.route('clear-long-term-memory/<profileName>')
+@simple_login_required
+def clearLongTermMemory(profileName):
+    username = session['username']
+    ltm_service.clear_longterm_memroy(username, profileName)
+    return {
+        'success': True,
+        'message': "Long term memory cleared"
+    }
+@api.route('share-chat-history/<profileName>')
+@simple_login_required
+def shareChatHistory(profileName):
+    from_ = session.get('username')
+    profile = profile_repo.get_profile_by_name(profileName)
+    to_ = profile.owned_by
+
+    message = chat_service.format_out_chat_history(from_, to_, profileName)
+    status, to_user = message_service.send(from_, to_, f"You have share message from {profileName}", message)
+    if status:
+        return {
+            'success': True,
+            'message': "Chat history shared",
+            'to_user': to_user.displayName
+        }
+    else:
+        return {
+            'success': False,
+            'message': "Chat history shared failed"
+        }   
+    

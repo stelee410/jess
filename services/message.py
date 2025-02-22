@@ -9,6 +9,6 @@ def send(from_user, to_user, title, message):
     user = user_repo.get_user_by_username(to_user)
     if user is None:
         logging.warning(f'trying to send the message, but user {to_user} not found')
-        return False
+        return False,None
     message_repo.insert_message(from_user, to_user, title, message)
-    return True
+    return True,user
