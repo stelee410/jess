@@ -23,16 +23,16 @@ class Register(Base):
             data['username'] =  form.username.data
             invitation_code = form.invitation_code.data
             if user_repo.is_invitation_code_available(invitation_code) is False:
-                self.flash("邀请码错误")
+                self.flash("Wrong invitation code")
                 return self.render('register.html', form=form)
             if user_repo.get_user_by_username(data['username']) is not None:
-                self.flash("用户名已经存在")
+                self.flash("Username already exists")
                 return self.render('register.html', form=form)
             data['avatar'] = 'images/default.png'
             password = form.password.data
             passowrd_confirm = form.password_confirm.data
             if password != passowrd_confirm:
-                self.flash("两次输入的密码不一致")
+                self.flash("Passwords do not match")
                 return self.render('register.html', form=form)
             data['password'] = get_password_hash(password,app.secret_key)
             data['displayName'] = form.username.data

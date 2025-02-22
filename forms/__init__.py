@@ -9,11 +9,11 @@ class ChatForm(FlaskForm):
     submit = SubmitField('发送')
 
 class ReigsterForm(FlaskForm):
-    username = StringField(label="用户名", validators=[DataRequired(), Length(1, 20)])
-    password = PasswordField(label="密码", validators=[Length(0, 20)])
-    password_confirm = PasswordField(label="确认密码", validators=[Length(0, 20)])
-    invitation_code = StringField(label="邀请码", validators=[DataRequired(), Length(1, 20)])
-    submit = SubmitField('保存',render_kw={"class":'single-btn',"style":'margin-left:0px'})
+    username = StringField(label="Username", validators=[DataRequired(), Length(1, 20)])
+    password = PasswordField(label="Password", validators=[Length(0, 20)])
+    password_confirm = PasswordField(label="Confirm Password", validators=[Length(0, 20)])
+    invitation_code = StringField(label="Invitation Code", validators=[DataRequired(), Length(1, 20)])
+    submit = SubmitField('Save',render_kw={"class":'single-btn',"style":'margin-left:0px'})
 
 class ProfileForm(FlaskForm):
     name = StringField(label="Unique ID", validators=[DataRequired(), Length(1, 20)])
