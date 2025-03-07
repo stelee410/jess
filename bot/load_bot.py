@@ -1,33 +1,18 @@
-from bot.chat import OpenAIBot,ExplorerBot,GPT4Bot,LoveBot,SimpleBot,AssistantBot,AssistantBotV2
-
-BotsMapping = {
-    'OpenAIBot': OpenAIBot,
-    'ExplorerBot': ExplorerBot,
-    'GPT4Bot': GPT4Bot,
-    'LoveBot': LoveBot,
-    'SimpleBot':SimpleBot,
-    'AssistantBot':AssistantBot,
-    'AssistantBotV2':AssistantBotV2
-}
-
+from .v1 import *
+from .v1 import get_bots_list as v1_get_bots_list
 
 def if_support_memory(botname):
-    return botname in ['GPT4Bot']
+    bot_klass = get_bot_klass(botname)
+    return bot_klass.__support_long_term_memory__
 
 def get_bots_list():
-    return [
-        ('OpenAIBot', '基础'),
-        ('GPT4Bot', 'GPT4（支持长期记忆哦）'),
-        ('AssistantBot','智能助理'),
-        ('AssistantBotV2','智能助理2号'),
-        ('ExplorerBot', '首页引导员'),
-        ('LoveBot', '爱情脑'),
-        ('SimpleBot','测试')
-    ]
+    return v1_get_bots_list()
 
 def load_bot(bot_name, description, messages, caller_id, context, username=None, profilename=None):
-    return BotsMapping[bot_name](description, messages, caller_id,context, username, profilename)
+    bot_klass = get_bot_klass(bot_name)
+    return bot_klass(description, messages, caller_id,context, username, profilename)
 
 def load_bot_by_profile(profile, caller_id, context={}, username=None):
     context = {**context,**{"profile":profile}}
-    return BotsMapping[profile.bot](profile.description, profile.message, caller_id, context, username, profile.name)
+    bot_klass = get_bot_klass(profile.bot)
+    return bot_klass(profile.description, profile.message, caller_id, context, username, profile.name)
