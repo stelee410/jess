@@ -74,7 +74,11 @@ class BaseBot():
         return ""
     
     def buildMemory(self, message):
-        return self.initContext
+        if message=="":
+            return self.initContext
+        if self.username is not None and self.profilename is not None:
+            long_term_memory = long_term_momory_service.get_longterm_memory(self.username, self.profilename,message)
+            return self.initContext+long_term_memory
 
     def get_max_token_num_hard(self):
         return 4096
@@ -90,6 +94,7 @@ class BaseBot():
                 input_message += n["content"]+"\n"
             input_message += message
             initContext = self.buildMemory(input_message)
+            print("initContext",initContext)
         else:
             initContext = self.initContext
         if message!="":

@@ -83,6 +83,7 @@ def clear_longterm_memroy(username, profilename):
     collection_name =generate_key_for_chat_memory(username, profilename)
     try:
         client.delete_collection(collection_name)
+        print('collection deleted for clear long term memory:',username, profilename)
     except ValueError as e:
         print('collection not found for clear long term memory:',username, profilename)
 
