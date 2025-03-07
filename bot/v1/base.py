@@ -94,7 +94,6 @@ class BaseBot():
                 input_message += n["content"]+"\n"
             input_message += message
             initContext = self.buildMemory(input_message)
-            print("initContext",initContext)
         else:
             initContext = self.initContext
         if message!="":
